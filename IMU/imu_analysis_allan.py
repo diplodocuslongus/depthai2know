@@ -4,6 +4,7 @@
 # Ts = time stamp 
 # accX,...: component of raw accelerometer m/s^2
 # gyrX,...: component of raw gyroscope, rad/s
+# https://stackoverflow.com/questions/18760903/fit-a-curve-using-matplotlib-on-loglog-scale
 import numpy as np
 import matplotlib.pyplot as plt
 

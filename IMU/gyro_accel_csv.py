@@ -8,6 +8,8 @@
 # Ts = time stamp 
 # accX,...: component of raw accelerometer m/s^2
 # gyrX,...: component of raw gyroscope, rad/s
+# https://docs.luxonis.com/projects/api/en/latest/components/nodes/imu/
+
 
 
 import depthai as dai
@@ -17,11 +19,11 @@ import csv
 
 # parameters for the data collection
 ACQ_T = 1.0 * 3600 # total acquisition time in seconds
-CSV_FILENAME = 'test_imu.csv'
+CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
 IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
 IMU_GYRO_SR = 100 # frequency / sample rate of the gyro, in Hz
-#N_SAMPLES = int(ACQ_T) * IMU_GYRO_SR
-N_SAMPLES = 10 #int(ACQ_T) * IMU_GYRO_SR
+N_SAMPLES = int(ACQ_T) * IMU_GYRO_SR
+#N_SAMPLES = 10 #int(ACQ_T) * IMU_GYRO_SR
 SHOW_DATA = False # show live data in terminal
 
 # Create pipeline
