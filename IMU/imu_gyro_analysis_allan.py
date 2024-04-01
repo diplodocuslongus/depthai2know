@@ -5,13 +5,28 @@
 # accX,...: component of raw accelerometer m/s^2
 # gyrX,...: component of raw gyroscope, rad/s
 # https://stackoverflow.com/questions/18760903/fit-a-curve-using-matplotlib-on-loglog-scale
+# modif: added constrained linear fit, ref:
+# https://stackoverflow.com/questions/48469889/how-to-fit-a-polynomial-with-some-of-the-coefficients-constrained
+# added all Allan deviation parameters:
+# - angle random walk (ARW), rad/s / sqrt(Hz) 
+# - rate random walk (RRW), rad/s * sqrt(Hz)
+# - bias instability, rad/s
+# 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+# fit function for the linear fit of a constrained coefficient polynomial (e.g. for the -0.5 slope)
+
+def fitfunc(x, a, b):
+  return a*x + b
+
 
 # Config. params
 CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
 #DATA_FILE = 'gyro-data.csv'  # CSV data file "gx,gy,gz"
 fs = 100  # Sample rate [Hz]
+noise_param_unit = 'rad'
 def AllanDeviation(dataArr: np.ndarray, fs: float, maxNumM: int=100):
     """Compute the Allan deviation (sigma) of time-series data.
 
@@ -56,12 +71,16 @@ dataArr = np.genfromtxt(CSV_FILENAME, delimiter=',')
 ts = 1.0 / fs
 
 # Separate into arrays
-gx = dataArr[:, 5] * (180.0 / np.pi)  # [deg/s]
-gy = dataArr[:, 6] * (180.0 / np.pi)
-gz = dataArr[:, 7] * (180.0 / np.pi)
+gx = dataArr[:, 5]  # (rad/s)
+gy = dataArr[:, 6] 
+gz = dataArr[:, 7] 
+if noise_param_unit == 'deg':
+    gx = gx * (180.0 / np.pi)  # [deg/s]
+    gy = gy * (180.0 / np.pi)
+    gz = gz * (180.0 / np.pi)
 
 # Calculate gyro angles
-thetax = np.cumsum(gx) * ts  # [deg]
+thetax = np.cumsum(gx) * ts  # deg or rad depending on noise_param_unit
 thetay = np.cumsum(gy) * ts
 thetaz = np.cumsum(gz) * ts
 
@@ -78,13 +97,15 @@ plt.plot(taux, adx, 'rx', label='gx')
 plt.plot(tauy, ady, label='gy')
 plt.plot(tauz, adz, label='gz')
 plt.xlabel(r'$\tau$ [sec]')
-plt.ylabel('Deviation [deg/sec]')
+plt.ylabel(f'Deviation ({noise_param_unit}/s)')
 plt.grid(True, which="both", ls="-", color='0.65')
 plt.legend()
 plt.xscale('log')
 plt.yscale('log')
 #plt.show()
 
+# find angle random walk, intersection of random walk line fit (-0.5 slope)
+# at tau = 1
 # add curve fit to proper section of curve
 # that is, between  10^-1 < tau < 20 for the gx component for one of the OAK-D
 # Location for the other components (gy, gz) is likely (slightly) different
@@ -106,6 +127,15 @@ idx_end = np.where(tauz > 10)[0][0]
 print(f'linear -0.5 slope for gz: = {idx_start,idx_end}')
 logtauz = np.log(tauz[idx_start:idx_end])
 logadz = np.log(adz[idx_start:idx_end])
+#####
+# below we do 2 different fits: one with fixed -0.5 slope, the other computes the slope (linear fit)
+# fix the slope for the linear fit
+#####
+up_bound_slope = -0.5
+lo_bound_slope = -0.5001
+popt_cons, _ = curve_fit(fitfunc, logtaux,logadx, bounds=([lo_bound_slope,-np.inf], [up_bound_slope,np.inf]))
+print(f'popt_cons = {popt_cons}')
+# compute the slope
 coeffs_x = np.polyfit(logtaux,logadx, deg=1)
 coeffs_y = np.polyfit(logtauy,logady, deg=1)
 coeffs_z = np.polyfit(logtauz,logadz, deg=1)
@@ -120,15 +150,23 @@ poly_z = np.poly1d(coeffs_z)
 rw_fit_x = lambda taux: np.exp(poly_x(np.log(taux)))
 rw_fit_y = lambda tauy: np.exp(poly_y(np.log(tauy)))
 rw_fit_z = lambda tauz: np.exp(poly_z(np.log(tauz)))
+# -0.5 slope line fit to random walk
+fixpoly_x = np.poly1d(popt_cons)
+#fixpoly_y = np.poly1d(coeffs_y)
+#fixpoly_z = np.poly1d(coeffs_z)
+rw_fixfit_x = lambda taux: np.exp(fixpoly_x(np.log(taux)))
+#rw_fixfit_y = lambda tauy: np.exp(poly_y(np.log(tauy)))
+#rw_fixfit_z = lambda tauz: np.exp(poly_z(np.log(tauz)))
 # get the angle random walk
 gyro_angle_randwalk_x = rw_fit_x(1)
+gyro_angle_randwalk_x_fixfit = rw_fixfit_x(1)
 gyro_angle_randwalk_y = rw_fit_y(1)
 gyro_angle_randwalk_z = rw_fit_z(1)
 gyro_angle_randwalk_avg = (gyro_angle_randwalk_x + gyro_angle_randwalk_y + gyro_angle_randwalk_z)/3.0
-print(f'gyro_angle_randwalk_x = {gyro_angle_randwalk_x}')
+print(f'gyro_angle_randwalk_x: from linear fit {gyro_angle_randwalk_x}, from -0.5 slope fit: {gyro_angle_randwalk_x_fixfit}')
 print(f'gyro_angle_randwalk_y = {gyro_angle_randwalk_y}')
 print(f'gyro_angle_randwalk_z = {gyro_angle_randwalk_z}')
-print(f'Average gyro_angle_randwalk = {gyro_angle_randwalk_avg} deg/sqrt(s)')
+print(f'Average gyro_angle_randwalk = {gyro_angle_randwalk_avg} {noise_param_unit}/sqrt(s)')
 plt.plot(1,gyro_angle_randwalk_x,'b8')
 plt.plot(1,gyro_angle_randwalk_y,'r8')
 plt.plot(1,gyro_angle_randwalk_z,'g8')
@@ -136,6 +174,7 @@ plt.plot(taux,rw_fit_x(taux))
 plt.plot(tauy,rw_fit_y(tauy))
 plt.plot(tauz,rw_fit_z(tauz))
 
+# get the rate random walk (unit: (rad/s)/(sqrt(Hz)
 # fit in the other direction
 
 idx_start = np.where(taux > 100)[0][0]
@@ -155,6 +194,7 @@ idx_end = np.where(tauz < 1000)[0][-1]
 print(f'linear fit slope for gz: = {idx_start,idx_end}')
 logtauz = np.log(tauz[idx_start:idx_end])
 logadz = np.log(adz[idx_start:idx_end])
+
 coeffs_x = np.polyfit(logtaux,logadx, deg=1)
 coeffs_y = np.polyfit(logtauy,logady, deg=1)
 coeffs_z = np.polyfit(logtauz,logadz, deg=1)
@@ -173,20 +213,42 @@ plt.plot(taux,rrw_fit_x(taux))
 plt.plot(tauy,rrw_fit_y(tauy))
 plt.plot(tauz,rrw_fit_z(tauz))
 #plt.plot(tauz,yfit_z(tauz))
-# find random walk, intersection of random walk line fit (-0.5 slope)
-# at tau = 1
+#################
+# Bias instability
+# called gyro "random walk" in Kalibr
+#################
+# compute derivative of Allan curve and intersect with line of slope 0
+
+deriv_x = np.gradient(adx,taux)
+deriv_y = np.gradient(ady,tauy)
+deriv_z = np.gradient(adz,tauz)
+local_min_x = np.argmin(np.abs(deriv_x))
+local_min_y = np.argmin(np.abs(deriv_y))
+local_min_z = np.argmin(np.abs(deriv_z))
+scale_fact = np.sqrt(2*np.log(2)/np.pi)
+bias_instab_x =adx[local_min_x] * scale_fact 
+bias_instab_y =ady[local_min_y] * scale_fact 
+bias_instab_z =adz[local_min_z] * scale_fact 
+print(f'local min: {np.argmin(np.abs(deriv_x))}, scale_fact = {scale_fact}')
+print(f'Bias instability in x: {bias_instab_x}')
+print(f'Bias instability in y: {bias_instab_y}')
+print(f'Bias instability in z: {bias_instab_z}')
+#print(f'dev = {logadx(local_min[0])}')
+
+# find rate random walk unit (rad/s)*sqrt(Hz) or (°/s)*sqrt(Hz)
+#, intersection of random walk line fit
+# at tau = 3
 print(f'poly_z = {poly_z}')
-print(f'rrw_fit_z(0)= {rrw_fit_z(0)}')
 print(f'rrw_fit_z(1)= {rrw_fit_z(1)}')
-gyro_rate_randwalk_x = rrw_fit_x(2)
-gyro_rate_randwalk_y = rrw_fit_y(2)
-gyro_rate_randwalk_z = rrw_fit_z(2)
+gyro_rate_randwalk_x = rrw_fit_x(3)
+gyro_rate_randwalk_y = rrw_fit_y(3)
+gyro_rate_randwalk_z = rrw_fit_z(3)
 gyro_rate_randwalk_avg = (gyro_rate_randwalk_x + gyro_rate_randwalk_y + gyro_rate_randwalk_z)/3.0
-print(f'gyro_rate_randwalk_x = {gyro_rate_randwalk_x} deg/s/sqrt(s)')
-print(f'gyro_rate_randwalk_y = {gyro_rate_randwalk_y} deg/s/sqrt(s)')
-print(f'gyro_rate_randwalk_z = {gyro_rate_randwalk_z} deg/s/sqrt(s)')
-print(f'Average gyro_rate_randwalk = {gyro_rate_randwalk_avg} deg/s/sqrt(s)')
-plt.plot(2,gyro_rate_randwalk_x,'bo')
-plt.plot(2,gyro_rate_randwalk_y,'ro')
-plt.plot(2,gyro_rate_randwalk_z,'go')
+print(f'gyro_rate_randwalk_x = {gyro_rate_randwalk_x} {noise_param_unit}/s/sqrt(s)')
+print(f'gyro_rate_randwalk_y = {gyro_rate_randwalk_y} {noise_param_unit}/s/sqrt(s)')
+print(f'gyro_rate_randwalk_z = {gyro_rate_randwalk_z} {noise_param_unit}/s/sqrt(s)')
+print(f'Average gyro_rate_randwalk = {gyro_rate_randwalk_avg} {noise_param_unit}/s/sqrt(s)')
+plt.plot(3,gyro_rate_randwalk_x,'bo')
+plt.plot(3,gyro_rate_randwalk_y,'ro')
+plt.plot(3,gyro_rate_randwalk_z,'go')
 plt.show()

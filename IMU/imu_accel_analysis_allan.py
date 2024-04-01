@@ -6,13 +6,25 @@
 # accX,...: component of raw accelerometer m/s^2
 # gyrX,...: component of raw gyroscope, rad/s
 # https://stackoverflow.com/questions/18760903/fit-a-curve-using-matplotlib-on-loglog-scale
+# modif: added constrained linear fit, ref:
+
+
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+# fit function for the linear fit of a constrained coefficient polynomial (e.g. for the -0.5 slope)
+
+def fitfunc(x, a, b):
+  return a*x + b
+
+
+
 
 # Config. params
 CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
 #DATA_FILE = 'gyro-data.csv'  # CSV data file "gx,gy,gz"
-fs = 100  # Sample rate [Hz]
+fs = 100  # Sample rate (Hz)
 def AllanDeviation(dataArr: np.ndarray, fs: float, maxNumM: int=100):
     """Compute the Allan deviation (sigma) of time-series data.
 
@@ -37,7 +49,7 @@ def AllanDeviation(dataArr: np.ndarray, fs: float, maxNumM: int=100):
     M = np.logspace(np.log10(1), np.log10(Mmax), num=maxNumM)
     M = np.ceil(M)  # Round up to integer
     M = np.unique(M)  # Remove duplicates
-    taus = M * ts  # Compute 'cluster durations' tau
+    taus = M * ts  # Compute 'cluster durations' tau (or correlation time)
 
     # Compute Allan variance
     allanVar = np.zeros(len(M))
@@ -57,12 +69,12 @@ dataArr = np.genfromtxt(CSV_FILENAME, delimiter=',')
 ts = 1.0 / fs
 
 # Separate into arrays
-gx = dataArr[:, 5] * (180.0 / np.pi)  # [deg/s]
+gx = dataArr[:, 5] * (180.0 / np.pi)  # [deg/s)
 gy = dataArr[:, 6] * (180.0 / np.pi)
 gz = dataArr[:, 7] * (180.0 / np.pi)
 
 # Calculate gyro angles
-thetax = np.cumsum(gx) * ts  # [deg]
+thetax = np.cumsum(gx) * ts  # (deg]
 thetay = np.cumsum(gy) * ts
 thetaz = np.cumsum(gz) * ts
 
@@ -78,8 +90,8 @@ plt.plot(taux, adx, 'rx', label='gx')
 # plt.plot(taux, adx, 'rx', label='gx') # to see the points
 plt.plot(tauy, ady, label='gy')
 plt.plot(tauz, adz, label='gz')
-plt.xlabel(r'$\tau$ [sec]')
-plt.ylabel('Deviation [deg/sec]')
+plt.xlabel(r'Correlation time $\tau$ (s)')
+plt.ylabel('Deviation (deg/sec)')
 plt.grid(True, which="both", ls="-", color='0.65')
 plt.legend()
 plt.xscale('log')
@@ -107,6 +119,15 @@ idx_end = np.where(tauz > 10)[0][0]
 print(f'linear -0.5 slope for gz: = {idx_start,idx_end}')
 logtauz = np.log(tauz[idx_start:idx_end])
 logadz = np.log(adz[idx_start:idx_end])
+#####
+# below we do 2 different fits: one with fixed -0.5 slope, the other computes the slope (linear fit)
+# fix the slope for the linear fit
+#####
+up_bound_slope = -0.5
+lo_bound_slope = -0.5001
+popt_cons, _ = curve_fit(fitfunc, logtaux,logadx, bounds=([lo_bound_slope,-np.inf], [up_bound_slope,np.inf]))
+print(f'popt_cons = {popt_cons}')
+# compute the slope
 coeffs_x = np.polyfit(logtaux,logadx, deg=1)
 coeffs_y = np.polyfit(logtauy,logady, deg=1)
 coeffs_z = np.polyfit(logtauz,logadz, deg=1)
