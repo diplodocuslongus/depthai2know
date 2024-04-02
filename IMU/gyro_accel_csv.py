@@ -18,10 +18,16 @@ import math
 import csv
 
 # parameters for the data collection
-ACQ_T = 1.0 * 3600 # total acquisition time in seconds
-CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
-IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
-IMU_GYRO_SR = 100 # frequency / sample rate of the gyro, in Hz
+ACQ_T_HR = 1.5
+#ACQ_T = 10 # total acquisition time in seconds
+ACQ_T = ACQ_T_HR * 3600 # total acquisition time in seconds
+#ACQ_T = 1.0 * 3600 # total acquisition time in seconds
+CSV_FILENAME = '/home/ludofw/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
+#CSV_FILENAME = '~/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
+IMU_ACCEL_SR = 500 # frequency / sample rate of the accelerometer, in Hz
+#IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
+IMU_GYRO_SR = 400 # frequency / sample rate of the gyro, in Hz
+#IMU_GYRO_SR = 100 # frequency / sample rate of the gyro, in Hz
 N_SAMPLES = int(ACQ_T) * IMU_GYRO_SR
 #N_SAMPLES = 10 #int(ACQ_T) * IMU_GYRO_SR
 SHOW_DATA = False # show live data in terminal

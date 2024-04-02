@@ -8,25 +8,31 @@
 # modif: added constrained linear fit, ref:
 # https://stackoverflow.com/questions/48469889/how-to-fit-a-polynomial-with-some-of-the-coefficients-constrained
 # added all Allan deviation parameters:
-# - angle random walk (ARW), rad/s / sqrt(Hz) 
-# - rate random walk (RRW), rad/s * sqrt(Hz)
-# - bias instability, rad/s
+# - angle random walk (ARW), noted N in matlab, IEEE std 952. In rad/s / sqrt(Hz) 
+# - rate random walk (RRW), noted K in matlab, IEEE std 952, in rad/s * sqrt(Hz)
+# - bias instability, B in rad/s
 # 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import os # for file manipulation
 
 # fit function for the linear fit of a constrained coefficient polynomial (e.g. for the -0.5 slope)
 
 def fitfunc(x, a, b):
   return a*x + b
-
-
+# result display
+PRECI= 3
+TYPE = "e" # é': exponential notation
+HOME = os.getenv("HOME")
 # Config. params
-CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
+#CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
+CSV_FILENAME = HOME+'/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
+#CSV_FILENAME = HOME+'/home/ludofw/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
 #DATA_FILE = 'gyro-data.csv'  # CSV data file "gx,gy,gz"
 fs = 100  # Sample rate [Hz]
 noise_param_unit = 'rad'
+#noise_param_unit = 'deg' # 'rad'
 def AllanDeviation(dataArr: np.ndarray, fs: float, maxNumM: int=100):
     """Compute the Allan deviation (sigma) of time-series data.
 
@@ -163,10 +169,11 @@ gyro_angle_randwalk_x_fixfit = rw_fixfit_x(1)
 gyro_angle_randwalk_y = rw_fit_y(1)
 gyro_angle_randwalk_z = rw_fit_z(1)
 gyro_angle_randwalk_avg = (gyro_angle_randwalk_x + gyro_angle_randwalk_y + gyro_angle_randwalk_z)/3.0
-print(f'gyro_angle_randwalk_x: from linear fit {gyro_angle_randwalk_x}, from -0.5 slope fit: {gyro_angle_randwalk_x_fixfit}')
-print(f'gyro_angle_randwalk_y = {gyro_angle_randwalk_y}')
-print(f'gyro_angle_randwalk_z = {gyro_angle_randwalk_z}')
-print(f'Average gyro_angle_randwalk = {gyro_angle_randwalk_avg} {noise_param_unit}/sqrt(s)')
+print(f'gyro_angle_randwalk_x: from linear fit {gyro_angle_randwalk_x:.{PRECI}{TYPE}}, from -0.5 slope fit: {gyro_angle_randwalk_x_fixfit:.{PRECI}{TYPE}}')
+print(f'gyro_angle_randwalk_y = {gyro_angle_randwalk_y:.{PRECI}{TYPE}}')
+print(f'gyro_angle_randwalk_z = {gyro_angle_randwalk_z:.{PRECI}{TYPE}}')
+print(f'Average gyro_angle_randwalk = {gyro_angle_randwalk_avg:.{PRECI}{TYPE}} {noise_param_unit}/sqrt(s)')
+print(f'Sqrt Average gyro_angle_randwalk = {np.sqrt(gyro_angle_randwalk_avg):.{PRECI}{TYPE}} {noise_param_unit}/sqrt(s)')
 plt.plot(1,gyro_angle_randwalk_x,'b8')
 plt.plot(1,gyro_angle_randwalk_y,'r8')
 plt.plot(1,gyro_angle_randwalk_z,'g8')
@@ -230,24 +237,24 @@ bias_instab_x =adx[local_min_x] * scale_fact
 bias_instab_y =ady[local_min_y] * scale_fact 
 bias_instab_z =adz[local_min_z] * scale_fact 
 print(f'local min: {np.argmin(np.abs(deriv_x))}, scale_fact = {scale_fact}')
-print(f'Bias instability in x: {bias_instab_x}')
-print(f'Bias instability in y: {bias_instab_y}')
-print(f'Bias instability in z: {bias_instab_z}')
+print(f'Bias instability in x: {bias_instab_x:.{PRECI}{TYPE}}')
+print(f'Bias instability in y: {bias_instab_y:.{PRECI}{TYPE}}')
+print(f'Bias instability in z: {bias_instab_z:.{PRECI}{TYPE}}')
 #print(f'dev = {logadx(local_min[0])}')
 
 # find rate random walk unit (rad/s)*sqrt(Hz) or (°/s)*sqrt(Hz)
 #, intersection of random walk line fit
 # at tau = 3
-print(f'poly_z = {poly_z}')
-print(f'rrw_fit_z(1)= {rrw_fit_z(1)}')
+# print(f'poly_z = {poly_z}')
+# print(f'rrw_fit_z(1)= {rrw_fit_z(1)}')
 gyro_rate_randwalk_x = rrw_fit_x(3)
 gyro_rate_randwalk_y = rrw_fit_y(3)
 gyro_rate_randwalk_z = rrw_fit_z(3)
 gyro_rate_randwalk_avg = (gyro_rate_randwalk_x + gyro_rate_randwalk_y + gyro_rate_randwalk_z)/3.0
-print(f'gyro_rate_randwalk_x = {gyro_rate_randwalk_x} {noise_param_unit}/s/sqrt(s)')
-print(f'gyro_rate_randwalk_y = {gyro_rate_randwalk_y} {noise_param_unit}/s/sqrt(s)')
-print(f'gyro_rate_randwalk_z = {gyro_rate_randwalk_z} {noise_param_unit}/s/sqrt(s)')
-print(f'Average gyro_rate_randwalk = {gyro_rate_randwalk_avg} {noise_param_unit}/s/sqrt(s)')
+print(f'gyro_rate_randwalk_x = {gyro_rate_randwalk_x:.{PRECI}{TYPE}} {noise_param_unit}/s/sqrt(s)')
+print(f'gyro_rate_randwalk_y = {gyro_rate_randwalk_y:.{PRECI}{TYPE}} {noise_param_unit}/s/sqrt(s)')
+print(f'gyro_rate_randwalk_z = {gyro_rate_randwalk_z:.{PRECI}{TYPE}} {noise_param_unit}/s/sqrt(s)')
+print(f'Average gyro_rate_randwalk = {gyro_rate_randwalk_avg:.{PRECI}{TYPE}} {noise_param_unit}/s/sqrt(s)')
 plt.plot(3,gyro_rate_randwalk_x,'bo')
 plt.plot(3,gyro_rate_randwalk_y,'ro')
 plt.plot(3,gyro_rate_randwalk_z,'go')
