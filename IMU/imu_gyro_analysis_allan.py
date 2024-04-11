@@ -15,7 +15,7 @@
 # - angle random walk (ARW), noted N in matlab, IEEE std 952. In rad/s / √Hz
 # - rate random walk (RRW), noted K in matlab, IEEE std 952, in rad/s * √Hz
 # - bias instability, B in rad/s
-#
+# N and K are the ones (supposedly) used in VINS-Mono/Fusion
 import os # for file manipulation
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,6 +34,7 @@ HOME = os.getenv("HOME")
 #CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
 CSV_FILENAME = HOME+'/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
 FS = 100  # Sample rate [Hz]
+TS = 1.0 / FS
 NOISE_PARAM_UNIT = 'rad'
 #NOISE_PARAM_UNIT = 'deg' # 'rad'
 DEG_2_RAD = np.pi / 180.0
@@ -79,7 +80,6 @@ def AllanDeviation(dataArr: np.ndarray, fs: float, maxNumM: int=100):
 
 # Load CSV into np array
 dataArr = np.genfromtxt(CSV_FILENAME, delimiter=',')
-TS = 1.0 / FS
 
 # Separate into arrays
 gx = dataArr[:, 5]  # (rad/s)
