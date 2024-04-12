@@ -3,11 +3,8 @@
 import os # for file manipulation
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
 import allantools
 #x = allantools.noise.white(10000)        # Generate some phase data, in seconds.
-
-import scipy.stats as stats
 
 HOME = os.getenv("HOME")
 CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
