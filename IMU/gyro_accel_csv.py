@@ -22,16 +22,16 @@ ACQ_T_HR = 0.1 #1.5
 #ACQ_T = 10 # total acquisition time in seconds
 ACQ_T = ACQ_T_HR * 3600 # total acquisition time in seconds
 #ACQ_T = 1.0 * 3600 # total acquisition time in seconds
-CSV_FILENAME = f'imu_oak_BNO086_{ACQ_T_HR}_12042024.csv'
 #CSV_FILENAME = '/home/ludofw/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
 #CSV_FILENAME = '~/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
-#IMU_ACCEL_SR = 500 # frequency / sample rate of the accelerometer, in Hz
-IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
-#IMU_GYRO_SR = 400 # frequency / sample rate of the gyro, in Hz
-IMU_GYRO_SR = 100 # frequency / sample rate of the gyro, in Hz
+IMU_ACCEL_SR = 500 # frequency / sample rate of the accelerometer, in Hz
+#IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
+IMU_GYRO_SR = 400 # frequency / sample rate of the gyro, in Hz
+#IMU_GYRO_SR = 100 # frequency / sample rate of the gyro, in Hz
 N_SAMPLES = int(ACQ_T) * IMU_GYRO_SR
 #N_SAMPLES = 10 #int(ACQ_T) * IMU_GYRO_SR
 SHOW_DATA = False # show live data in terminal
+CSV_FILENAME = f'imu_oak_BNO086_{int(ACQ_T_HR*60)}mn_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}.csv'
 
 # Create pipeline
 pipeline = dai.Pipeline()
