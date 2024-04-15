@@ -10,8 +10,6 @@
 # gyrX,...: component of raw gyroscope, rad/s
 # https://docs.luxonis.com/projects/api/en/latest/components/nodes/imu/
 
-
-
 import depthai as dai
 import time
 import math
@@ -31,8 +29,7 @@ N_SAMPLES = int(ACQ_T) * IMU_GYRO_SR
 SHOW_DATA = False # show live data in terminal
 # put the imu orientation in a dict for conveniently setting the output csv filename
 IMU_ORIENTATION = {0:'level',1:'xUp',2:'xDown',3:'yUp',4:'yDown',5:'zUp',6:'zDown'}
-#IMU_ORIENTATION = ('level','xUp','xDown','yUp','yDown','zUp','zDown')
-CSV_FILENAME = f'oak_BNO086_{int(ACQ_T_HR*60)}mn_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[6]}.csv'
+CSV_FILENAME = f'oak_BNO086_{int(ACQ_T_HR*60)}mn_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[3]}.csv'
 #CSV_FILENAME = '/home/ludofw/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
 #CSV_FILENAME = '~/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
 
