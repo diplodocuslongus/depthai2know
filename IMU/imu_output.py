@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# simple imu data output in the terminal
 
 import cv2
 import depthai as dai
@@ -15,8 +16,10 @@ xlinkOut = pipeline.create(dai.node.XLinkOut)
 xlinkOut.setStreamName("imu")
 
 # enable ACCELEROMETER_RAW at 500 hz rate
-imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER, 500)
-#imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER_RAW, 500)
+#imu.enableIMUSensor(dai.IMUSensor.LINEAR_ACCELERATION, 500)
+#imu.enableIMUSensor(dai.IMUSensor.GRAVITY, 500)
+#imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER, 500)
+imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER_RAW, 500)
 # enable GYROSCOPE_RAW at 400 hz rate
 imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_CALIBRATED, 400)
 #imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_RAW, 400)
@@ -58,10 +61,9 @@ with dai.Device(pipeline) as device:
             imuF = "{:.06f}"
             tsF  = "{:.03f}"
 
-            print(f"Accelerometer timestamp: {tsF.format(acceleroTs)} ms")
-            print(f"Accelerometer [m/s^2]: x: {imuF.format(acceleroValues.x)} y: {imuF.format(acceleroValues.y)} z: {imuF.format(acceleroValues.z)}")
-            print(f"Gyroscope timestamp: {tsF.format(gyroTs)} ms")
-            print(f"Gyroscope [rad/s]: x: {imuF.format(gyroValues.x)} y: {imuF.format(gyroValues.y)} z: {imuF.format(gyroValues.z)} ")
+            #print(f"Accelerometer timestamp: {tsF.format(acceleroTs)} ms")
+            print(f"{imuF.format(acceleroValues.x)},{imuF.format(acceleroValues.y)},{imuF.format(acceleroValues.z)}, "
+                  f"{imuF.format(gyroValues.x)},{imuF.format(gyroValues.y)},{imuF.format(gyroValues.z)} ")
 
         if cv2.waitKey(1) == ord('q'):
             break
