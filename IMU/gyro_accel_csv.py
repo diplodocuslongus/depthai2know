@@ -16,10 +16,9 @@ import math
 import csv
 
 # parameters for the data collection
-ACQ_T_HR = 0.1 #1.5
-#ACQ_T = 10 # total acquisition time in seconds
+ACQ_T_HR = 0.5 #0.1 #1.5
 ACQ_T = ACQ_T_HR * 3600 # total acquisition time in seconds
-#ACQ_T = 1.0 * 3600 # total acquisition time in seconds
+#ACQ_T = 10 # total acquisition time in seconds
 IMU_ACCEL_SR = 500 # frequency / sample rate of the accelerometer, in Hz
 #IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
 IMU_GYRO_SR = 400 # frequency / sample rate of the gyro, in Hz
@@ -29,7 +28,12 @@ N_SAMPLES = int(ACQ_T) * IMU_GYRO_SR
 SHOW_DATA = False # show live data in terminal
 # put the imu orientation in a dict for conveniently setting the output csv filename
 IMU_ORIENTATION = {0:'level',1:'xUp',2:'xDown',3:'yUp',4:'yDown',5:'zUp',6:'zDown'}
-CSV_FILENAME = f'oak_BNO086_{int(ACQ_T_HR*60)}mn_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[3]}.csv'
+if ACQ_T_HR > 1.0:
+    TIME_STR = f'{ACQ_T_HR}hr'
+else:
+    TIME_STR = f'{int(ACQ_T_HR*60)}mn'
+CSV_FILENAME = f'oak_BNO086_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[3]}.csv'
+#CSV_FILENAME = f'oak_BNO086_{int(ACQ_T_HR*60)}mn_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[3]}.csv'
 #CSV_FILENAME = '/home/ludofw/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
 #CSV_FILENAME = '~/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
 
@@ -43,9 +47,11 @@ xlinkOut = pipeline.create(dai.node.XLinkOut)
 xlinkOut.setStreamName("imu")
 
 # enable ACCELEROMETER_RAW at IMU_ACCEL_SR hz rate
-imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER_RAW, IMU_ACCEL_SR)
+#imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER_RAW, IMU_ACCEL_SR)
+imu.enableIMUSensor(dai.IMUSensor.LINEAR_ACCELERATION, 500)
 # enable GYROSCOPE_RAW at IMU_GYRO_SR hz rate
-imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_RAW, IMU_GYRO_SR)
+#imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_RAW, IMU_GYRO_SR)
+imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_CALIBRATED, 400)
 # it's recommended to set both setBatchReportThreshold and setMaxBatchReports to 20 when integrating in a pipeline with a lot of input/output connections
 # above this threshold packets will be sent in batch of X, if the host is not blocked and USB bandwidth is available
 imu.setBatchReportThreshold(1)
@@ -68,7 +74,9 @@ with dai.Device(pipeline) as device, open(CSV_FILENAME, newline='', mode='w') as
     imuQueue = device.getOutputQueue(name="imu", maxSize=50, blocking=False)
     baseTs = None
     #while True:
-    for _ in range(N_SAMPLES):
+    for k in range(N_SAMPLES):
+    #for _ in range(N_SAMPLES):
+        print(end=f"\r{(k+1)/N_SAMPLES*100:6.2f} %")
         imuData = imuQueue.get()  # blocking call, will wait until a new data has arrived
 
         imuPackets = imuData.packets

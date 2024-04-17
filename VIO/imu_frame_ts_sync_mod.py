@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-
+# modif: simply removed the dependencie on depthai_sdk
+# from: https://github.com/luxonis/depthai-experiments/tree/master/gen2-syncing#imu--rgb--depth-timestamp-syncing
 import cv2
 import numpy as np
 import depthai as dai
 from datetime import timedelta
-from depthai_sdk.fps import FPSHandler
+#from depthai_sdk.fps import FPSHandler
 
 # Weights to use when blending depth/rgb image (should equal 1.0)
 rgbWeight = 0.4
@@ -136,17 +137,15 @@ with dai.Device() as device:
     blendedWindowName = "rgb-depth"
     cv2.namedWindow(blendedWindowName)
     cv2.createTrackbar('RGB Weight %', blendedWindowName, int(rgbWeight*100), 100, updateBlendWeights)
-    fps = FPSHandler()
-
-
+    #fps = FPSHandler()
 
     def new_msg(msg, name, ts=None):
         synced = add_msg(msg, name, ts)
 
         if not synced: return
 
-        fps.nextIter()
-        print('FPS', fps.fps())
+    #    fps.nextIter()
+    #    print('FPS', fps.fps())
         rgb_ts, rgb = synced['rgb']
         stereo_ts, disp = synced['disp']
         imuTs, imu = synced['imu']
