@@ -22,7 +22,22 @@ if imuType != "BNO086":
 
 pipeline = dai.Pipeline()
 
-color = pipeline.create(dai.node.ColorCamera)
+#color = pipeline.create(dai.node.ColorCamera)
+calibData = device.readCalibration2()
+left = pipeline.create(dai.node.MonoCamera)
+left.setResolution(monoResolution)
+left.setBoardSocket(dai.CameraBoardSocket.LEFT)
+left.setFps(45)
+
+right = pipeline.create(dai.node.MonoCamera)
+right.setResolution(monoResolution)
+right.setBoardSocket(dai.CameraBoardSocket.RIGHT)
+right.setFps(45)
+
+stereo = pipeline.create(dai.node.StereoDepth)
+stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+# LR-check is required for depth alignment
+stereo.setLeftRightCheck(True)
 imu = pipeline.create(dai.node.IMU)
 sync = pipeline.create(dai.node.Sync)
 xoutImu = pipeline.create(dai.node.XLinkOut)
@@ -31,7 +46,7 @@ xoutImu.setStreamName("imu")
 xoutGrp = pipeline.create(dai.node.XLinkOut)
 xoutGrp.setStreamName("xout")
 
-color.setCamera("color")
+#color.setCamera("color")
 
 imu.enableIMUSensor(dai.IMUSensor.ROTATION_VECTOR, 120)
 imu.setBatchReportThreshold(1)
@@ -40,7 +55,7 @@ imu.setMaxBatchReports(10)
 sync.setSyncThreshold(timedelta(milliseconds=10))
 sync.setSyncAttempts(-1)
 
-color.video.link(sync.inputs["video"])
+#color.video.link(sync.inputs["video"])
 imu.out.link(sync.inputs["imu"])
 
 sync.out.link(xoutGrp.input)
