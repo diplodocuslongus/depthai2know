@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# saves imu data for further analysis (e.g. Allan variance)
+# saves imu data for use with the imu took kit (imu_tk)
 # this is for the OAK-D pro, make sure to set the sample rate 
 # corresponding to the IMU chip actually on board the OAK
 # get it with e.g. get_imu_part_number
 # data format
-# accTs, accX, accY, accZ, gyrTs, gyrX, gyrY, gyrZ 
+# accTs, accX, accY, accZ, gyrX, gyrY, gyrZ 
 # Ts = time stamp 
 # accX,...: component of raw accelerometer m/s^2
 # gyrX,...: component of raw gyroscope, rad/s
@@ -16,9 +16,8 @@ import math
 import csv
 
 # parameters for the data collection
-ACQ_T_HR = 0.01 #0.1 #1.5
-ACQ_T = ACQ_T_HR * 3600 # total acquisition time in seconds
-#ACQ_T = 10 # total acquisition time in seconds
+#ACQ_T = 20*4 # 50s idle, 40 orientation paused during at least 2s, 2s to move to new orientation
+ACQ_T = 55+ 40*5 # 50s idle, 40 orientation paused during at least 2s, 2s to move to new orientation
 #IMU_ACCEL_SR = 500 # frequency / sample rate of the accelerometer, in Hz
 IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
 #IMU_GYRO_SR = 400 # frequency / sample rate of the gyro, in Hz
@@ -30,15 +29,8 @@ SHOW_DATA = False # show live data in terminal
 # imuTK: for use with the imu Tool Kit (imu_tk)
 IMU_ORIENTATION = {0:'level',1:'xUp',2:'xDown',3:'yUp',4:'yDown',5:'zUp',6:'zDown',7:'imuTK'}
 imu_orient = 7
-if ACQ_T_HR > 1.0:
-    TIME_STR = f'{ACQ_T_HR}hr'
-else:
-    TIME_STR = f'{int(ACQ_T_HR*60)}mn'
-CSV_FILENAME = f'oak_BNO086_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[7]}.csv'
-#CSV_FILENAME = f'oak_BNO086_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[3]}.csv'
-#CSV_FILENAME = f'oak_BNO086_{int(ACQ_T_HR*60)}mn_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[3]}.csv'
-#CSV_FILENAME = '/home/ludofw/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
-#CSV_FILENAME = '~/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
+TIME_STR = f'{int(ACQ_T)}s'
+CSV_FILENAME = f'{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[7]}.csv'
 
 # Create pipeline
 pipeline = dai.Pipeline()
@@ -50,19 +42,9 @@ xlinkOut = pipeline.create(dai.node.XLinkOut)
 xlinkOut.setStreamName("imu")
 
 # enable ACCELEROMETER_RAW at IMU_ACCEL_SR hz rate
-if imu_orient == 7: # ('imuTK')
-    ACQ_T = 20*4 # 50s idle, 40 orientation paused during at least 2s, 2s to move to new orientation
-    #ACQ_T = 50+ 40*4 # 50s idle, 40 orientation paused during at least 2s, 2s to move to new orientation
-    N_SAMPLES = int(ACQ_T) * IMU_GYRO_SR
-    #print(N_SAMPLES)
-    imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER_RAW, IMU_ACCEL_SR)
-    imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_RAW, IMU_GYRO_SR)
-else:
-    #imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER_RAW, IMU_ACCEL_SR)
-    imu.enableIMUSensor(dai.IMUSensor.LINEAR_ACCELERATION, IMU_ACCEL_SR)
-    # enable GYROSCOPE_RAW at IMU_GYRO_SR hz rate
-    #imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_RAW, IMU_GYRO_SR)
-    imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_CALIBRATED, IMU_GYRO_SR)
+#print(N_SAMPLES)
+imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER_RAW, IMU_ACCEL_SR)
+imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_RAW, IMU_GYRO_SR)
 # it's recommended to set both setBatchReportThreshold and setMaxBatchReports to 20 when integrating in a pipeline with a lot of input/output connections
 # above this threshold packets will be sent in batch of X, if the host is not blocked and USB bandwidth is available
 imu.setBatchReportThreshold(1)
@@ -105,13 +87,11 @@ with dai.Device(pipeline) as device, open(CSV_FILENAME, newline='', mode='w') as
             imuF = "{:.06f}"
             tsF  = "{:.03f}"
             imudatalist = [tsF.format(acceleroTs),
-               imuF.format(acceleroValues.x),imuF.format(acceleroValues.y),imuF.format(acceleroValues.z),
-               tsF.format(gyroTs),
-               imuF.format(gyroValues.x),imuF.format(gyroValues.y),imuF.format(gyroValues.z)]
+                imuF.format(acceleroValues.x),imuF.format(acceleroValues.y),imuF.format(acceleroValues.z),
+                imuF.format(gyroValues.x),imuF.format(gyroValues.y),imuF.format(gyroValues.z)]
             csvwriter.writerow(imudatalist)
 
             if (SHOW_DATA):
                 print(f"Accelerometer timestamp: {tsF.format(acceleroTs)} ms")
                 print(f"Accelerometer [m/s^2]: x: {imuF.format(acceleroValues.x)} y: {imuF.format(acceleroValues.y)} z: {imuF.format(acceleroValues.z)}")
-                print(f"Gyroscope timestamp: {tsF.format(gyroTs)} ms")
                 print(f"Gyroscope [rad/s]: x: {imuF.format(gyroValues.x)} y: {imuF.format(gyroValues.y)} z: {imuF.format(gyroValues.z)} ")
