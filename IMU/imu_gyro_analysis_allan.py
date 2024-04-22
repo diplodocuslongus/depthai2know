@@ -32,7 +32,8 @@ TYPE = "e" # e: exponential notation
 HOME = os.getenv("HOME")
 # Config. params
 #CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
-CSV_FILENAME = HOME+'/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
+#CSV_FILENAME = HOME+'/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
+CSV_FILENAME = 'imu_oak_BNO086_6mn_gyroSR100_accSR125.csv'
 FS = 100  # Sample rate [Hz]
 TS = 1.0 / FS
 NOISE_PARAM_UNIT = 'rad'
@@ -96,9 +97,11 @@ thetay = np.cumsum(gy) * TS
 thetaz = np.cumsum(gz) * TS
 
 # Compute Allan deviations
-(taux, adx) = AllanDeviation(thetax, FS, maxNumM=200)
-(tauy, ady) = AllanDeviation(thetay, FS, maxNumM=200)
-(tauz, adz) = AllanDeviation(thetaz, FS, maxNumM=200)
+#Mnb = 200 # for noise analysis
+Mnb = 50 # for IMU_tk
+(taux, adx) = AllanDeviation(thetax, FS, maxNumM=Mnb)
+(tauy, ady) = AllanDeviation(thetay, FS, maxNumM=Mnb)
+(tauz, adz) = AllanDeviation(thetaz, FS, maxNumM=Mnb)
 
 # Plot data on log-scale
 plt.figure()
