@@ -33,7 +33,10 @@ HOME = os.getenv("HOME")
 # Config. params
 #CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
 #CSV_FILENAME = HOME+'/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
-CSV_FILENAME = 'imu_oak_BNO086_6mn_gyroSR100_accSR125.csv'
+#CSV_FILENAME = 'imu_oak_BNO086_6mn_gyroSR100_accSR125.csv'
+#CSV_FILENAME = 'oak_BNO086_6mn_gyroSR400_accSR500_level.csv'
+#CSV_FILENAME = 'oak_BNO086_6mn_gyroSR400_accSR500_yUp.csv'
+CSV_FILENAME = 'oak_BNO086_6mn_gyroSR400_accSR125_imuTK.csv'
 FS = 100  # Sample rate [Hz]
 TS = 1.0 / FS
 NOISE_PARAM_UNIT = 'rad'
@@ -97,8 +100,8 @@ thetay = np.cumsum(gy) * TS
 thetaz = np.cumsum(gz) * TS
 
 # Compute Allan deviations
-#Mnb = 200 # for noise analysis
-Mnb = 50 # for IMU_tk
+Mnb = 200 # for noise analysis
+#Mnb = 50 # for IMU_tk
 (taux, adx) = AllanDeviation(thetax, FS, maxNumM=Mnb)
 (tauy, ady) = AllanDeviation(thetay, FS, maxNumM=Mnb)
 (tauz, adz) = AllanDeviation(thetaz, FS, maxNumM=Mnb)
@@ -114,7 +117,7 @@ plt.xlabel(r'$\tau$ [sec]')
 plt.ylabel(f'Deviation ({NOISE_PARAM_UNIT}/s)')
 plt.grid(True, which="both", ls="-", color='0.65')
 plt.legend()
-#plt.xscale('log')
+plt.xlim(0,100)
 plt.yscale('log')
 #plt.show()
 ## find angle random walk, intersection of random walk line fit (-0.5 slope)
