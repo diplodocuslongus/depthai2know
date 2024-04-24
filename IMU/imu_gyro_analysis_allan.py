@@ -32,7 +32,8 @@ TYPE = "e" # e: exponential notation
 HOME = os.getenv("HOME")
 # Config. params
 #CSV_FILENAME = 'imu_oakdpro_1hr_28032024.csv'
-CSV_FILENAME = HOME+'/Data/Drones/IMU/oak_BNO086_60mn_gyroSR400_accSR500_xDown.csv'
+CSV_FILENAME = HOME+'/Data/Drones/IMU/OAKLight_BMI270_90mn_gyroSR250_accSR250_yUp.csv'
+#CSV_FILENAME = HOME+'/Data/Drones/IMU/oak_BNO086_60mn_gyroSR400_accSR500_xDown.csv'
 #CSV_FILENAME = HOME+'/Data/Drones/IMU/imu_oak_BNO086_2hr_02042024.csv'
 #CSV_FILENAME = HOME+'/Data/Drones/IMU/oak_BNO086_30mn_gyrocalSR400_acclinSR500_level.csv'
 #CSV_FILENAME = 'imu_oak_BNO086_6mn_gyroSR100_accSR125.csv'
@@ -277,10 +278,14 @@ gyro_rate_randwalk_x = rrw_fit_x(3)
 gyro_rate_randwalk_y = rrw_fit_y(3)
 gyro_rate_randwalk_z = rrw_fit_z(3)
 gyro_rate_randwalk_avg = (gyro_rate_randwalk_x + gyro_rate_randwalk_y + gyro_rate_randwalk_z)/3.0
+gyro_rate_randwalk_rms = np.sqrt((gyro_rate_randwalk_x*gyro_rate_randwalk_x 
+                                  + gyro_rate_randwalk_y*gyro_rate_randwalk_y 
+                                  + gyro_rate_randwalk_z*gyro_rate_randwalk_z))
 print(f'gyro_rate_randwalk_x = {gyro_rate_randwalk_x:.{PRECI}{TYPE}} {NOISE_PARAM_UNIT}/s/√s')
 print(f'gyro_rate_randwalk_y = {gyro_rate_randwalk_y:.{PRECI}{TYPE}} {NOISE_PARAM_UNIT}/s/√s')
 print(f'gyro_rate_randwalk_z = {gyro_rate_randwalk_z:.{PRECI}{TYPE}} {NOISE_PARAM_UNIT}/s/√s')
 print(f'Average gyro_rate_randwalk = {gyro_rate_randwalk_avg:.{PRECI}{TYPE}} {NOISE_PARAM_UNIT}/s/√s')
+print(f'RMS gyro_rate_randwalk = {gyro_rate_randwalk_rms:.{PRECI}{TYPE}} {NOISE_PARAM_UNIT}/s/√s')
 plt.plot(3,gyro_rate_randwalk_x,'bo')
 plt.plot(3,gyro_rate_randwalk_y,'ro')
 plt.plot(3,gyro_rate_randwalk_z,'go')

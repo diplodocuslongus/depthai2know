@@ -33,29 +33,38 @@ def logChipTemperature(info):
     print(f"Chip temperature - average: {t.average:.2f}, css: {t.css:.2f}, mss: {t.mss:.2f}, upa: {t.upa:.2f}, dss: {t.dss:.2f}")
 
 # parameters for the data collection
-ACQ_T_HR = 1.0 #0.1 #0.1 #1.5
+#OAK_NAME = 'OAKDPro'
+OAK_NAME = 'OAKLight'
+if OAK_NAME == 'OAKDPro':
+    IMU_ACCEL_SR = 500 # frequency / sample rate of the accelerometer, in Hz
+    #IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
+    IMU_GYRO_SR = 400 # frequency / sample rate of the gyro, in Hz
+    #IMU_GYRO_SR = 100 # frequency / sample rate of the gyro, in Hz
+    IMU_NAME = 'BNO086'
+elif OAK_NAME == 'OAKLight':
+    IMU_ACCEL_SR = 250 
+    IMU_GYRO_SR = 250
+    IMU_NAME = 'BMI270'
+
+ACQ_T_HR = 1.5 #0.1 #0.1 #1.5
 ACQ_T = ACQ_T_HR * 3600 # total acquisition time in seconds
 #ACQ_T = 10 # total acquisition time in seconds
 HOME = os.getenv("HOME")
-IMU_ACCEL_SR = 500 # frequency / sample rate of the accelerometer, in Hz
-#IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
-IMU_GYRO_SR = 400 # frequency / sample rate of the gyro, in Hz
-#IMU_GYRO_SR = 100 # frequency / sample rate of the gyro, in Hz
 N_SAMPLES = int(ACQ_T) * IMU_GYRO_SR
 #N_SAMPLES = 10 #int(ACQ_T) * IMU_GYRO_SR
 SHOW_DATA = False # show live data in terminal
-LOG_CPU_TEMPERATURE = True
+LOG_CPU_TEMPERATURE = False
 # put the imu orientation in a dict for conveniently setting the output csv filename
 # imuTK: for use with the imu Tool Kit (imu_tk)
 # 'level' means the imu (or the frame in which the chip is mounted, e.g. the oak camera) is perfectly level; different from xDown where x points down but may not be perfectly level
 IMU_ORIENTATION = {0:'level',1:'xDown',2:'xUp',3:'xDown',4:'yUp',5:'yDown',6:'zUp',7:'zDown',8:'imuTK'}
-imu_orient = 1
+imu_orient = 4
 if ACQ_T_HR > 1.0:
     TIME_STR = f'{ACQ_T_HR}hr'
 else:
     TIME_STR = f'{int(ACQ_T_HR*60)}mn'
-CSV_FILENAME = 'check'
-#CSV_FILENAME = f'{HOME}/Data/Drones/IMU/oak_BNO086_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[imu_orient]}.csv'
+#CSV_FILENAME = 'check'
+CSV_FILENAME = f'{HOME}/Data/Drones/IMU/{OAK_NAME}_{IMU_NAME}_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[imu_orient]}.csv'
 #CSV_FILENAME = f'oak_BNO086_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[imu_orient]}.csv'
 #CSV_FILENAME = f'oak_BNO086_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[3]}.csv'
 #CSV_FILENAME = f'oak_BNO086_{int(ACQ_T_HR*60)}mn_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[3]}.csv'
