@@ -47,8 +47,8 @@ elif OAK_NAME == 'OAKLight':
     IMU_NAME = 'BMI270'
 
 ACQ_T_HR = 1.5 #0.1 #0.1 #1.5
-ACQ_T = ACQ_T_HR * 3600 # total acquisition time in seconds
-#ACQ_T = 10 # total acquisition time in seconds
+#ACQ_T = ACQ_T_HR * 3600 # total acquisition time in seconds
+ACQ_T = 10 # total acquisition time in seconds
 HOME = os.getenv("HOME")
 N_SAMPLES = int(ACQ_T) * IMU_GYRO_SR
 #N_SAMPLES = 10 #int(ACQ_T) * IMU_GYRO_SR
@@ -65,6 +65,7 @@ else:
     TIME_STR = f'{int(ACQ_T_HR*60)}mn'
 #CSV_FILENAME = 'check'
 CSV_FILENAME = f'{HOME}/Data/Drones/IMU/{OAK_NAME}_{IMU_NAME}_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[imu_orient]}.csv'
+#CSV_FILENAME = f'{HOME}/Data/Drones/IMU/{OAK_NAME}_{IMU_NAME}_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[imu_orient]}.csv'
 #CSV_FILENAME = f'oak_BNO086_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[imu_orient]}.csv'
 #CSV_FILENAME = f'oak_BNO086_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[3]}.csv'
 #CSV_FILENAME = f'oak_BNO086_{int(ACQ_T_HR*60)}mn_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[3]}.csv'
