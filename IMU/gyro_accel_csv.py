@@ -43,7 +43,7 @@ hw_setup_idx = 0 # input idx corresponding to the current configuration below
 HW_SETUP= {0:'Drone',1:'Cart',2:'Static',3:'BenchMotorOn',4:'Other',5:'',6:'',7:'',8:''}
 # Drone / frame name (if applicable)
 drone_frame_idx = 1
-DRONE_FRAME= {0:'380mmFrame',1:'WarehouseFrame',2:'225mmFrame',3:'',4:'',5:'',6:'',7:'',8:''}
+DRONE_FRAME= {0:'380mmFrame',1:'WarehouseFrame',2:'250mmFrame',3:'',4:'',5:'',6:'',7:'',8:''}
 FLIGHT_MODE = 'Manual'
 #FLIGHT_MODE = 'Loiter'
 # imu orientation idx
@@ -54,7 +54,9 @@ imu_orient = 4
 IMU_ORIENTATION = {0:'level',1:'xDown',2:'xUp',3:'xDown',4:'yUp',5:'yDown',6:'zUp',7:'zDown',8:'imuTK'}
 
 if HW_SETUP[hw_setup_idx] == 'Drone':
-    CONFIG_DESCRIPTION = f'{DRONE_FRAME[drone_frame_idx]}_{FLIGHT_MODE}Mode'
+    CONFIG_DESCRIPTION = f'{DRONE_FRAME[drone_frame_idx]}_Flight{FLIGHT_MODE}'
+elif HW_SETUP[hw_setup_idx] == 'BenchMotorOn':
+    CONFIG_DESCRIPTION = f'{DRONE_FRAME[drone_frame_idx]}_{IMU_ORIENTATION[imu_orient]}'
 else:    
     CONFIG_DESCRIPTION = f'{HW_SETUP[hw_setup_idx]}_{IMU_ORIENTATION[imu_orient]}'
 
