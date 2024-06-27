@@ -12,6 +12,8 @@
 # added system log TODO finish
 # added: drone name (option), just set time as a string with any time unit (s,mn,hr), 
 # check for directory, is not exisiting create it# adjust file name convention 
+# new: simply write the time as a string, with units of s (seconds), mn (minute) or hr
+# the proper total time in seconds will be automatically extracted from the string
 
 import os # for file manipulation
 from pathlib import Path
@@ -38,6 +40,8 @@ def logChipTemperature(info):
 #-----------------------------------
 # parameters for the data collection
 #-----------------------------------
+# total acquisition time (just write the time with the unit:ex: 2mn, 120s, 2hr...)
+TIME_STR = '2mn'
 # hardware / system setup information
 hw_setup_idx = 0 # input idx corresponding to the current configuration below
 HW_SETUP= {0:'Drone',1:'Cart',2:'Static',3:'BenchMotorOn',4:'Other',5:'',6:'',7:'',8:''}
@@ -73,11 +77,6 @@ elif OAK_NAME == 'OAKLight':
     IMU_GYRO_SR = 200
     IMU_NAME = 'BMI270'
 
-# total acquisition time
-# new: simply write the time as a string, with units of s (seconds), mn (minute) or hr
-# the proper total time in seconds will be automatically extracted from the string
-
-TIME_STR = '2mn'
 if 'hr' in TIME_STR:
     acq_time_hr = int(TIME_STR.split('hr')[0])
     ACQ_T = acq_time_hr*3600
