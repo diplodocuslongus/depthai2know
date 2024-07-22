@@ -52,6 +52,26 @@ Install depthai_sdk from source may work.
 
 # OAK-D pro
 
+## Camera
+
+### Calibration
+
+Clone depthai and cd inside.
+
+(For example to a path at `othersgitrepos/ComputerVision/Luxonis_DepthAI/depthai`)
+
+Then add the submodule, [info here](https://github.com/luxonis/depthai-calibration?tab=readme-ov-file) by running:
+
+    git submodule update --init
+
+Some info on the process [here](https://docs.luxonis.com/hardware/platform/calibration), see also [this](https://docs.luxonis.com/software/depthai/examples/calibration_load#calibration-load).
+
+In particular, If you want to re-run the calibration process on the captured images, use the -m process argument:
+Command Line
+
+python3 calibrate.py -s [SQUARE_SIZE_IN_CM] --board [BOARD] -nx [squaresX] -ny [squaresY] -m process
+
+Calibration results are stored inside the resources/ folder and can be used later for testing/debugging purposes. You can also load/flash this local calibration file to the device - see example for more details.
 ## IMU
 
 ### calibration

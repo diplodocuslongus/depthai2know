@@ -11,3 +11,4 @@ once connected to the pi:
 Then the examples can be run, they are in Desktop/deptai-python/examples.
 
 
+See also rpi repo, rpi_installs.md
