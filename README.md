@@ -79,4 +79,23 @@ Calibration results are stored inside the resources/ folder and can be used late
 
 https://docs.luxonis.com/projects/api/en/latest/components/nodes/imu/
 
+# OAK module aka OAK FFC (multiple camera)
+
+Tested 20092024
+
+    cd /$HOME/Programs/othersgitrepos/ComputerVision/Luxonis_DepthAI/depthai-python
+    py utilities/cam_test.py
+
+Plug 2 mono on CAMB2L and CAMC 2L
+The 2L means 2 lanes, it's for mono camera.
+If plug a mono cam on 4L port it will show in color but single color, red for the test I did.
+
+Links:
+
+https://github.com/luxonis/depthai-python/blob/main/utilities/cam_test.py
+
+https://shop.luxonis.com/products/oak-ffc-4p
+
+https://docs.luxonis.com/hardware/platform/deploy/ffc/
+https://discuss.luxonis.com/d/2664-getting-started-with-oak-ffc-4p
 
