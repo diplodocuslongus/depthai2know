@@ -86,6 +86,20 @@ Tested 20092024
     cd /$HOME/Programs/othersgitrepos/ComputerVision/Luxonis_DepthAI/depthai-python
     py utilities/cam_test.py
 
+output:
+
+Enabled cameras:
+   camb : mono
+   camc : mono
+CAM:  camb
+CAM:  camc
+Connected cameras:
+ -socket CAM_B : OV9282 1280 x  800 focus:fixed - MONO COLOR
+ -socket CAM_C : OV9282 1280 x  800 focus:fixed - MONO COLOR
+USB speed: SUPER
+IR drivers: []
+
+
 Plug 2 mono on CAMB2L and CAMC 2L
 The 2L means 2 lanes, it's for mono camera.
 If plug a mono cam on 4L port it will show in color but single color, red for the test I did.
