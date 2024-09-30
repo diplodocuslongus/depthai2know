@@ -1,3 +1,8 @@
+# usage: py mono_depth_aligned_2.py -rect (option to use the rectified mono)
+# TODO: 
+#   read depth (or disparity) on given lines
+#   transform line from right to left (or vice versa) based on calibration data
+#   match lines from righ tot left (or vice versa) and get detph from line disparity
 #!/usr/bin/env python3
 
 import cv2
@@ -5,6 +10,14 @@ import numpy as np
 import depthai as dai
 import argparse
 
+#import /home/ludofw/mygitrepos/opencv2know/line_detection/frezza_supelec/LSD_utils.py as mll
+import sys
+
+sys.path.insert(0, '/home/ludofw/mygitrepos/opencv2know/line_detection/frezza_supelec')
+
+import LSD_utils as mll
+show_lines = False
+min_line_length = 150# min line length
 #Create default parametrization LSD
 lsd = cv2.createLineSegmentDetector(0)
 parser = argparse.ArgumentParser()
@@ -269,6 +282,7 @@ with device:
     frameLeft = None
     frameDisp = None
     lines = None
+    linesLeft,linesRight = None,None
 
     while True:
         for q in qList:
@@ -280,24 +294,83 @@ with device:
                 drawn_img = lsd.drawSegments(frame,lines)
                 #Show image
                 cv2.imshow("LSD",drawn_img )
-            if name == "left":
+            if name == "rectifiedLeft": 
+                frameLeft = frame.astype(np.uint8)
+                #Detect lines in the left frames
+                linesLeft = lsd.detect(frameLeft)[0] 
+                linesLeft = mll.from_lsd(linesLeft)
+
+                # filter out the short segments
+                linesLeft = linesLeft[linesLeft[...,7] > min_line_length]
+                if linesLeft is not None:
+                    frameLeftColor= cv2.cvtColor(frameLeft, cv2.COLOR_GRAY2BGR)
+                    mll.draw_lines(frameLeftColor, linesLeft, (200, 20, 20), 3)
+                    #drawn_img = lsd.drawSegments(frameLeft,linesLeft)
+                    #cv2.imshow(name,drawn_img )
+                    if linesRight is not None:
+                        mll.draw_lines(frameLeftColor, linesRight, (20, 20, 100),2)
+                    cv2.imshow(name, frameLeftColor)
+                else:
+                    cv2.imshow(name, frameLeft)
+            if name == "rectifiedRight": 
+                frameRight = frame.astype(np.uint8)
+                #Detect lines in the left frames
+                linesRight = lsd.detect(frameRight)[0] 
+                linesRight = mll.from_lsd(linesRight)
+
+                # filter out the short segments
+                linesRight = linesRight[linesRight[...,7] > min_line_length]
+                if linesLeft is not None:
+                    frameRightColor= cv2.cvtColor(frameRight, cv2.COLOR_GRAY2BGR)
+                    mll.draw_lines(frameRightColor, linesRight, (20, 10, 100), 3)
+                    #drawn_img = lsd.drawSegments(frameLeft,linesLeft)
+                    #cv2.imshow(name,drawn_img )
+                    cv2.imshow(name, frameRightColor)
+                else:
+                    cv2.imshow(name, frameRight)
+
+#                cv2.imshow(name, frameLeft)
+            #if name == "rectifiedRight": #"right":
+            #    frameRight = frame.astype(np.uint8)
+            #    #Detect lines in the left frames
+            #    lines = lsd.detect(frameRight)[0] 
+            #    lines = mll.from_lsd(lines)
+
+            #    # filter out the short segments
+            #    lines = lines[lines[...,7] > min_line_length]
+            #    #cv2.line(frameRight, (0, self.ceiling), (frame.shape[1], self.ceiling), (0, 0, 200), 1)
+
+            #    cv2.imshow(name, frameRight)
+            if 0:# name == "left":
                 frameLeft = frame.astype(np.uint8)
                 #frameLeft = frame.astype(np.uint16)
                 #Detect lines in the left frames
                 lines = lsd.detect(frameLeft)[0] 
-                #drawn_img = lsd.drawSegments(frame,lines)
-                cv2.imshow(name, frameLeft)
+                lines = mll.from_lsd(lines)
+                if 0: #lines is not None:
+                    drawn_img = lsd.drawSegments(frame,lines)
+                    cv2.imshow("LSD",drawn_img )
+                else:
+                    cv2.imshow(name, frameLeft)
             if name == "depth":
+                print('got depth')
                 frameDepth = frame.astype(np.uint16)
                 cv2.imshow(name, frameDepth)
                 if lines is not None:
-                    drawn_img = lsd.drawSegments(frameDepth,lines)
+                # display lines
+                    mll.draw_lines(frameDepth, lines, (20, 100, 100), 3)
+
+                    #drawn_img = lsd.drawSegments(frameDepth,lines)
                     cv2.imshow("LSD",drawn_img )
             elif name == "disparity":
+                #print('got disparity')
                 frameDisp = getDisparityFrame(frame, cvColorMap)
-                if lines is not None:
-                    drawn_img = lsd.drawSegments(frameDisp,lines)
-                    cv2.imshow("LSD",drawn_img )
+                if linesRight is not None:
+                # display lines
+                    mll.draw_lines(frameDisp, linesRight, (20, 100, 100), 3)
+                    cv2.imshow("LSD",frameDisp )
+                    #drawn_img = lsd.drawSegments(frameDisp,lines)
+                    #cv2.imshow("LSD",drawn_img )
 
             #cv2.imshow(name, frame)
         if cv2.waitKey(1) == ord("q"):

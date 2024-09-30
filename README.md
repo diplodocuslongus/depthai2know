@@ -1,3 +1,11 @@
+order TODO
+
+pip install depthai-sdk[record]
+
+To record:
+https://discuss.luxonis.com/d/1572-process-recorded-data-from-oak-d-without-access-to-oak-d/12
+Go to depthai-sdk examples, the depthai -experiment example doesn't work
+
 # depthai
 
 ## install on raspberry pi
