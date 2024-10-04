@@ -10,7 +10,6 @@ import numpy as np
 import depthai as dai
 import argparse
 
-#import /home/ludofw/mygitrepos/opencv2know/line_detection/frezza_supelec/LSD_utils.py as mll
 import sys
 
 sys.path.insert(0, '/home/ludofw/mygitrepos/opencv2know/line_detection/frezza_supelec')
