@@ -19,32 +19,41 @@ import cv2
 import depthai as dai
 import numpy as np
 import sys
+import math
 
 sys.path.insert(0, '/home/ludofw/mygitrepos/opencv2know/line_detection/frezza_supelec')
 
 import LSD_utils as mll
 
+# compute the line origin at the image border
+# takes a line_mll structure, size of image
+# use a margin so that point is displayed (could be done outside)
 def line_orig(line_mll,W,H):
     global marg_px
-    marg = marg_px # in pixels, attention to the equivalent in normlized points when setting the ROI
+#    marg = marg_px # in pixels, attention to the equivalent in normlized points when setting the ROI
     a,b,c=line_mll[4],line_mll[5],line_mll[6]
-    y=H - marg
+    y=H - marg_px
     x = -1/a*(b*H+c)
-    if x<0:
+    if x>W:
         # need to use the width
-        x = W - marg
+        x = W - marg_px
         y = -1/b*(a*W+c)
-    return (int(x),int(y))
+    if x<0:
+        # need to set to 0 + margin
+        x =  marg_px
+        y = -1/b*(a*W+c)
+    return np.asarray([int(x),int(y)])
 
 
 
+show_dist = True # show distance to point (true) or x,y,z in world coordinates
 show_lines = False
-min_line_length = 100# min line length
+min_line_length = 150# min line length
 #Create default parametrization LSD
 lsd = cv2.createLineSegmentDetector(0)
 stepSize = 0.05
-marg_px = 10 # margin from image border, in pixels
-norm_marg = (marg_px-1) / 400 # margin from image border, in units normalized to img size
+marg_px = 50 # margin from image border, in pixels
+norm_marg = (marg_px-1) / 640 # margin from image border, in units normalized to img size
 newConfig = False
 
 # Create pipeline
@@ -76,11 +85,14 @@ stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
 stereo.setLeftRightCheck(True)
 stereo.setSubpixel(True)
 
-# Config 
-# define ROI in normalized point (0-1) -> (0-image width), same for height
-topLeft = dai.Point2f(0.2, 0.2) #(0.4, 0.4)
-bottomRight = dai.Point2f(0.2, 0.2)#(0.6, 0.6)
-
+#------------------------------
+# define ROI for depth estimation
+#------------------------------
+# ! these are in normalized point (0-1) -> (0-image width), same for height
+#topLeft = dai.Point2f(0.2, 0.2) #(0.4, 0.4)
+#bottomRight = dai.Point2f(0.2, 0.2)#(0.6, 0.6)
+topLeft = dai.Point2f(0.921875, 0.6899999976158142)
+bottomRight = dai.Point2f(0.9984375238418579, 0.7665625214576721)
 config = dai.SpatialLocationCalculatorConfigData()
 config.depthThresholds.lowerThreshold = 100
 config.depthThresholds.upperThreshold = 10000
@@ -125,13 +137,16 @@ with dai.Device(pipeline) as device:
         linesLeft = linesLeft[linesLeft[...,7] > min_line_length]
         if len(linesLeft) > 1: # is not None:
             ptc_ = line_orig(linesLeft[0],depthFrameColor.shape[1],depthFrameColor.shape[0])
-            print(line_orig(linesLeft[0],depthFrameColor.shape[1],depthFrameColor.shape[0]))
+            print(f'ptc = {ptc_}')
+            #print(f'ptc = line_orig(linesLeft[0],depthFrameColor.shape[1],depthFrameColor.shape[0])')
             frameLeftColor= cv2.cvtColor(inLeft, cv2.COLOR_GRAY2BGR)
             mll.draw_lines(frameLeftColor, linesLeft, (200, 20, 20), 3)
             # get depth at line origin
             # equation is ax+by+c = 0
             # and show the origin as a circle
-            ptc = ptc_
+            ptc = ptc_ 
+            ptc[0] = ptc[0] - marg_px/2
+            ptc[1] = ptc[1] - marg_px/2
             #ptc = (int(linesLeft[0][0]),int(linesLeft[0][1]))
             topLeft.x = ptc[0]/depthFrameColor.shape[1]
             topLeft.y = ptc[1]/depthFrameColor.shape[0]
@@ -139,7 +154,8 @@ with dai.Device(pipeline) as device:
             bottomRight.y=topLeft.y+norm_marg # 0.1 
             #topLeft_ = (ptc[0]/depthFrameColor.shape[1],ptc[1]/depthFrameColor.shape[0])
             #bottomRight_ = topLeft_ + 0.1 #ptc[1]/depthFrameColor.shape[0]
-            print(topLeft, bottomRight)
+            print(f'norm point: {topLeft}, {bottomRight}')
+            print(f'{topLeft.x,topLeft.y}, {bottomRight.x,bottomRight.y}')
             #print(ptc)
             #print(f'nb detected lines = {len(linesLeft)}, specs: {linesLeft}, {linesLeft[0][0:1]}, { linesLeft[1][0:1]}')
             cv2.circle(frameLeftColor,ptc, 10, (0,0,255), -1)
@@ -149,6 +165,10 @@ with dai.Device(pipeline) as device:
 
 
         depthFrame = inDepth.getFrame() # depthFrame values are in millimeters
+        W = depthFrame.shape[1]
+        H = depthFrame.shape[0]
+        #W = depthFrameColor.shape[1]
+        #H = depthFrameColor.shape[0]
 
         depth_downscaled = depthFrame[::4]
         if np.all(depth_downscaled == 0):
@@ -170,14 +190,22 @@ with dai.Device(pipeline) as device:
             xmax = int(roi.bottomRight().x)
             ymax = int(roi.bottomRight().y)
 
+            xtxt = xmin -10 if xmin > W/2 else (xmin + 10)
+            ytxt = ymin -10 if ymin > H/2 else (ymin + 10)
+
             depthMin = depthData.depthMin
             depthMax = depthData.depthMax
 
+            coords = depthData.spatialCoordinates
+            distance = math.sqrt(coords.x ** 2 + coords.y ** 2 + coords.z ** 2)
             fontType = cv2.FONT_HERSHEY_TRIPLEX
             cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), color, 1)
-            cv2.putText(depthFrameColor, f"X: {int(depthData.spatialCoordinates.x)} mm", (xmin + 10, ymin - 20), fontType, 0.5, color)
-            cv2.putText(depthFrameColor, f"Y: {int(depthData.spatialCoordinates.y)} mm", (xmin + 10, ymin - 35), fontType, 0.5, color)
-            cv2.putText(depthFrameColor, f"Z: {int(depthData.spatialCoordinates.z)} mm", (xmin + 10, ymin - 50), fontType, 0.5, color)
+            if show_dist:
+                cv2.putText(depthFrameColor, f"{distance/1000:.2f}m", (xtxt,ytxt), fontType, 0.5, color)
+            else:
+                cv2.putText(depthFrameColor, f"X: {int(depthData.spatialCoordinates.x)} mm", (xtxt,ytxt), fontType, 0.5, color)
+                cv2.putText(depthFrameColor, f"Y: {int(depthData.spatialCoordinates.y)} mm", (xtxt,ytxt + 15), fontType, 0.5, color)
+                cv2.putText(depthFrameColor, f"Z: {int(depthData.spatialCoordinates.z)} mm", (xtxt,ytxt + 30), fontType, 0.5, color)
         # Show the frame
         cv2.imshow("depth", depthFrameColor)
         cv2.imshow("left", inLeft)
@@ -226,6 +254,7 @@ with dai.Device(pipeline) as device:
             print('Switching calculation algorithm to MEDIAN!')
             newConfig = True
 
+        # update the roi for depth calculation, etc...
         if newConfig:
             config.roi = dai.Rect(topLeft, bottomRight)
             config.calculationAlgorithm = calculationAlgorithm
