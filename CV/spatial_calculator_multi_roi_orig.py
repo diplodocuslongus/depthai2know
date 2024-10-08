@@ -76,7 +76,6 @@ with dai.Device(pipeline) as device:
         depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_HOT)
 
         spatialData = spatialCalcQueue.get().getSpatialLocations()
-        print(f'nb of roi detected: {len(spatialData)}')
         for depthData in spatialData:
             roi = depthData.config.roi
             roi = roi.denormalize(width=depthFrameColor.shape[1], height=depthFrameColor.shape[0])
