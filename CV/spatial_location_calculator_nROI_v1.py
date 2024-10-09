@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
 # TODO 
-# find bug where roi change to 2 or 1 despite setting 4 in new config, happens for some given detected lines (horizontal)
-# nb of roi detected: 2
-# roi = <depthai.Rect object at 0x73999ea08030>
-# rect xymin, xymax: (-195418817949674073699363545296142336, 0) and (-195418817949674073699363545296142336, 0)
-
-# fix the exposire to get a more reliable detection (maybe)
-# done 
 # add multiple ROI at each line extrimities (for each lines, then refine by line length, strenght)
+# fix the exposire to get a more reliable detection (maybe)
 '''
                 [[x1, y1, x2, y2, a, b, c, L],
 
@@ -210,39 +204,29 @@ with dai.Device(pipeline) as device:
         # filter out the short segments
         linesLeft = linesLeft[linesLeft[...,7] > min_line_length]
         frameLeftColor= cv2.cvtColor(inLeft, cv2.COLOR_GRAY2BGR)
-        print(f'nb of lines detected: {len(linesLeft)}') # is not None:
-        if len(linesLeft) > (nb_roi//2): # is not None:
-            for i in range(nb_roi//2):
+        #print(f'nb of lines detected: {len(linesLeft)}') # is not None:
+        if len(linesLeft) > 3: # is not None:
+            for i in range(nb_roi):
                 #ptc_= line_orig(linesLeft[i],depthFrameColor.shape[1],depthFrameColor.shape[0])
-                ptc_1,ptc_2= line_extremities(linesLeft[i],depthFrameColor.shape[1],depthFrameColor.shape[0])
+                ptc_,_= line_extremities(linesLeft[i],depthFrameColor.shape[1],depthFrameColor.shape[0])
                 #print(f'ptc_ dtype = {ptc_.dtype,type(ptc_)} ptc_ = {ptc_}')
                 #print(f'ptc dtype = {ptc.dtype,type(ptc)} ptc = {ptc,ptc[i]}')
-                ptc[2*i][0]=ptc_1[0]   - marg_px/2 if ptc_1[0] > W/2 else (ptc_1[0] + marg_px/2)
-                ptc[2*i][1]=ptc_1[1]   - marg_px/2 if ptc_1[1] > H/2 else (ptc_1[1] + marg_px/2)
-                ptc[2*i+1][0]=ptc_2[0] - marg_px/2 if ptc_2[0] > W/2 else (ptc_2[0] + marg_px/2)
-                ptc[2*i+1][1]=ptc_2[1] - marg_px/2 if ptc_2[1] > H/2 else (ptc_2[1] + marg_px/2)
-                print(f'ptc[{2*i}] = {ptc[2*i]},ptc[{2*i+1}] = {ptc[2*i+1]}')
+                ptc[i][0]=ptc_[0]
+                ptc[i][1]=ptc_[1]
+                #print(f'ptc[{i}] = {ptc[i]}')
                 # get depth at line origin and end
                 # equation is ax+by+c = 0
                 # and show the origin as a circle
-                #xtxt = xmin -10 if xmin > W/2 else (xmin + 10)
-                #ptc[2*i][0] = ptc[2*i][0] - marg_px/2 
-                #ptc[2*i][1] = ptc[2*i][1] - marg_px/2
-                #ptc[2*i+1][0] = ptc[2*i+1][0] - marg_px/2
-                #ptc[2*i+1][1] = ptc[2*i+1][1] - marg_px/2
-                roi_tl_pts2f[2*i].x = ptc[2*i][0]/depthFrameColor.shape[1]
-                roi_tl_pts2f[2*i].y = ptc[2*i][1]/depthFrameColor.shape[0]
-                roi_br_pts2f[2*i].x=roi_tl_pts2f[2*i].x+norm_marg # 0.1 
-                roi_br_pts2f[2*i].y=roi_tl_pts2f[2*i].y+norm_marg # 0.1 
-                roi_tl_pts2f[2*i+1].x = ptc[2*i+1][0]/depthFrameColor.shape[1]
-                roi_tl_pts2f[2*i+1].y = ptc[2*i+1][1]/depthFrameColor.shape[0]
-                roi_br_pts2f[2*i+1].x=roi_tl_pts2f[2*i+1].x+norm_marg # 0.1 
-                roi_br_pts2f[2*i+1].y=roi_tl_pts2f[2*i+1].y+norm_marg # 0.1 
-                print(f'{roi_tl_pts2f[i].x,roi_tl_pts2f[i].y}, {roi_br_pts2f[i].x,roi_br_pts2f[i].y}')
-                cv2.circle(frameLeftColor,ptc_1, 10, (0,0,255), -1)
-                cv2.circle(frameLeftColor,ptc_2, 10, (0,0,255), -1)
+                ptc[i][0] = ptc[i][0] - marg_px/2
+                ptc[i][1] = ptc[i][1] - marg_px/2
+                #ptc = (int(linesLeft[0][0]),int(linesLeft[0][1]))
+                roi_tl_pts2f[i].x = ptc[i][0]/depthFrameColor.shape[1]
+                roi_tl_pts2f[i].y = ptc[i][1]/depthFrameColor.shape[0]
+                roi_br_pts2f[i].x=roi_tl_pts2f[i].x+norm_marg # 0.1 
+                roi_br_pts2f[i].y=roi_tl_pts2f[i].y+norm_marg # 0.1 
+                #print(f'{roi_tl_pts2f[i].x,roi_tl_pts2f[i].y}, {roi_br_pts2f[i].x,roi_br_pts2f[i].y}')
+                cv2.circle(frameLeftColor,ptc_, 10, (0,0,255), -1)
                 #cv2.circle(frameLeftColor,ptc[i], 10, (0,0,255), -1)
-                #i = i+1
             mll.draw_lines(frameLeftColor, linesLeft, (200, 20, 20), 3)
 
             newConfig = True
@@ -284,7 +268,7 @@ with dai.Device(pipeline) as device:
             coords = depthData.spatialCoordinates
             distance = math.sqrt(coords.x ** 2 + coords.y ** 2 + coords.z ** 2)
             fontType = cv2.FONT_HERSHEY_TRIPLEX
-            print(f'rect xymin, xymax: {xmin,ymin} and {xmax,ymax}')
+            #print(f'rect: {xmin,ymin} and {xmax,ymax}')
             cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), color, 1)
             if show_dist:
                 cv2.putText(depthFrameColor, f"{distance/1000:.2f}m", (xtxt,ytxt), fontType, 0.5, color)
@@ -328,12 +312,12 @@ with dai.Device(pipeline) as device:
             cfg = dai.SpatialLocationCalculatorConfig()
             for i in range(nb_roi):
                 #print(f'{roi_tl_pts2f[i], roi_br_pts2f[i]}')
-                print(f'roi[{i}] tl {roi_tl_pts2f[i].x, roi_tl_pts2f[i].y} br {roi_br_pts2f[i].x, roi_br_pts2f[i].y}')
+                #print(f'{roi_tl_pts2f[i].x, roi_tl_pts2f[i].y}')
+                #print(f'{roi_br_pts2f[i].x, roi_br_pts2f[i].y}')
                 config.roi = dai.Rect(roi_tl_pts2f[i], roi_br_pts2f[i])
                 config.calculationAlgorithm = calculationAlgorithm
                 cfg.addROI(config)
                 spatialCalcConfigInQueue.send(cfg)
-            print('end new config')
             for i in range(0): #nb_roi):
                 #print(f'{roi_tl_pts2f[i], roi_br_pts2f[i]}')
                 #print(f'{roi_tl_pts2f[i].x, roi_tl_pts2f[i].y}')
