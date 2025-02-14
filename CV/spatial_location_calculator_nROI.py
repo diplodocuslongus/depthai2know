@@ -27,7 +27,8 @@ import numpy as np
 import sys
 import math
 
-sys.path.insert(0, '/home/ludofw/mygitrepos/opencv2know/line_detection/frezza_supelec')
+sys.path.insert(0, '/home/pi/Programs/warehouse_nav/lines_and_template')
+# sys.path.insert(0, '/home/ludofw/mygitrepos/opencv2know/line_detection/frezza_supelec')
 
 import LSD_utils as mll
 
@@ -285,7 +286,10 @@ with dai.Device(pipeline) as device:
             distance = math.sqrt(coords.x ** 2 + coords.y ** 2 + coords.z ** 2)
             fontType = cv2.FONT_HERSHEY_TRIPLEX
             print(f'rect xymin, xymax: {xmin,ymin} and {xmax,ymax}')
-            cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), color, 1)
+            try:
+                cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), color, 1)
+            except:
+                pass
             if show_dist:
                 cv2.putText(depthFrameColor, f"{distance/1000:.2f}m", (xtxt,ytxt), fontType, 0.5, color)
                 cv2.putText(frameLeftColor, f"{distance/1000:.2f}m", (xtxt,ytxt), fontType, 0.5, color)
@@ -298,7 +302,7 @@ with dai.Device(pipeline) as device:
         cv2.imshow('leftline', frameLeftColor)
         #cv2.imshow("left", inLeft)
 
-        key = cv2.waitKey(1)
+        key = cv2.waitKey(200)
         if key == ord('q'):
             break
         elif key == ord('1'):
