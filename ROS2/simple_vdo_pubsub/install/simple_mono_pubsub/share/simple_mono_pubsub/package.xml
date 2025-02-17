@@ -4,7 +4,7 @@
   <name>simple_mono_pubsub</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="hinoki.kuaimu@gmail.com">ludofw</maintainer>
+  <maintainer email="abc@mail.com">fw</maintainer>
   <license>TODO: License declaration</license>
   
   <exec_depend>rclpy</exec_depend>

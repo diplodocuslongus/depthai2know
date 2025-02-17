@@ -52,5 +52,3 @@ with dai.Device(pipeline) as device:
         img_pub.publish(img)
 
 rclpy.shutdown()
-
-
