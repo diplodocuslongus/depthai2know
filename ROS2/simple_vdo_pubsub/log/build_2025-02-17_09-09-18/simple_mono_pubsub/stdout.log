@@ -1,0 +1,39 @@
+running egg_info
+creating ../../build/simple_mono_pubsub/simple_mono_pubsub.egg-info
+writing ../../build/simple_mono_pubsub/simple_mono_pubsub.egg-info/PKG-INFO
+writing dependency_links to ../../build/simple_mono_pubsub/simple_mono_pubsub.egg-info/dependency_links.txt
+writing entry points to ../../build/simple_mono_pubsub/simple_mono_pubsub.egg-info/entry_points.txt
+writing requirements to ../../build/simple_mono_pubsub/simple_mono_pubsub.egg-info/requires.txt
+writing top-level names to ../../build/simple_mono_pubsub/simple_mono_pubsub.egg-info/top_level.txt
+writing manifest file '../../build/simple_mono_pubsub/simple_mono_pubsub.egg-info/SOURCES.txt'
+reading manifest file '../../build/simple_mono_pubsub/simple_mono_pubsub.egg-info/SOURCES.txt'
+writing manifest file '../../build/simple_mono_pubsub/simple_mono_pubsub.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/build/simple_mono_pubsub/build
+creating /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/build/simple_mono_pubsub/build/lib
+creating /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/build/simple_mono_pubsub/build/lib/simple_mono_pubsub
+copying simple_mono_pubsub/mono_preview_sub.py -> /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/build/simple_mono_pubsub/build/lib/simple_mono_pubsub
+copying simple_mono_pubsub/__init__.py -> /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/build/simple_mono_pubsub/build/lib/simple_mono_pubsub
+copying simple_mono_pubsub/mono_preview_pub.py -> /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/build/simple_mono_pubsub/build/lib/simple_mono_pubsub
+running install
+running install_lib
+creating /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/lib/python3.10/site-packages/simple_mono_pubsub
+copying /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/build/simple_mono_pubsub/build/lib/simple_mono_pubsub/mono_preview_sub.py -> /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/lib/python3.10/site-packages/simple_mono_pubsub
+copying /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/build/simple_mono_pubsub/build/lib/simple_mono_pubsub/__init__.py -> /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/lib/python3.10/site-packages/simple_mono_pubsub
+copying /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/build/simple_mono_pubsub/build/lib/simple_mono_pubsub/mono_preview_pub.py -> /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/lib/python3.10/site-packages/simple_mono_pubsub
+byte-compiling /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/lib/python3.10/site-packages/simple_mono_pubsub/mono_preview_sub.py to mono_preview_sub.cpython-310.pyc
+byte-compiling /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/lib/python3.10/site-packages/simple_mono_pubsub/__init__.py to __init__.cpython-310.pyc
+byte-compiling /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/lib/python3.10/site-packages/simple_mono_pubsub/mono_preview_pub.py to mono_preview_pub.cpython-310.pyc
+running install_data
+creating /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/share/ament_index
+creating /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/share/ament_index/resource_index
+creating /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/share/ament_index/resource_index/packages
+copying resource/simple_mono_pubsub -> /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/share/ament_index/resource_index/packages
+copying package.xml -> /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/share/simple_mono_pubsub
+running install_egg_info
+Copying ../../build/simple_mono_pubsub/simple_mono_pubsub.egg-info to /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/lib/python3.10/site-packages/simple_mono_pubsub-0.0.0-py3.10.egg-info
+running install_scripts
+Installing listener script to /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/lib/simple_mono_pubsub
+Installing talker script to /home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/install/simple_mono_pubsub/lib/simple_mono_pubsub
+writing list of installed files to '/home/ludofw/mygitrepos/depthai2know/ROS2/simple_vdo_pubsub/build/simple_mono_pubsub/install.log'

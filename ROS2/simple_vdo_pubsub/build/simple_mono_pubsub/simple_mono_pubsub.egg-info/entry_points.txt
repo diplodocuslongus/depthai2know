@@ -1,0 +1,3 @@
+[console_scripts]
+listener = simple_mono_pubsub.mono_preview_sub:main
+talker = simple_mono_pubsub.mono_preview_pub:main
