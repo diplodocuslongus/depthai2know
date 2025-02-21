@@ -4,6 +4,16 @@
 
 import cv2
 import depthai as dai
+import numpy as np
+
+# for disparity
+
+# Closer-in minimum depth, disparity range is doubled (from 95 to 190):
+extended_disparity = False
+# Better accuracy for longer distance, fractional disparity 32-levels:
+subpixel = False
+# Better handling for occlusions:
+lr_check = True
 
 
 # Create pipeline
@@ -12,15 +22,23 @@ pipeline = dai.Pipeline()
 # Define sources and outputs
 monoLeft = pipeline.create(dai.node.MonoCamera)
 monoRight = pipeline.create(dai.node.MonoCamera)
+
+depth = pipeline.create(dai.node.StereoDepth)
 featureTrackerLeft = pipeline.create(dai.node.FeatureTracker)
 featureTrackerRight = pipeline.create(dai.node.FeatureTracker)
 
+xoutDisparity = pipeline.create(dai.node.XLinkOut)
+xoutRectifLeft = pipeline.create(dai.node.XLinkOut)
+xoutRectifRight = pipeline.create(dai.node.XLinkOut)
 xoutPassthroughFrameLeft = pipeline.create(dai.node.XLinkOut)
 xoutTrackedFeaturesLeft = pipeline.create(dai.node.XLinkOut)
 xoutPassthroughFrameRight = pipeline.create(dai.node.XLinkOut)
 xoutTrackedFeaturesRight = pipeline.create(dai.node.XLinkOut)
 xinTrackedFeaturesConfig = pipeline.create(dai.node.XLinkIn)
 
+xoutDisparity.setStreamName("disparity")
+xoutRectifLeft.setStreamName("rectifiedLeft")
+xoutRectifRight.setStreamName("rectifiedRight")
 xoutPassthroughFrameLeft.setStreamName("passthroughFrameLeft")
 xoutTrackedFeaturesLeft.setStreamName("trackedFeaturesLeft")
 xoutPassthroughFrameRight.setStreamName("passthroughFrameRight")
@@ -33,11 +51,40 @@ monoLeft.setCamera("left")
 monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
 monoRight.setCamera("right")
 
+# configuration for disparity
+
+
+# '''
+# Create a node that will produce the depth map (using disparity output as it's easier to visualize depth this way)
+depth.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+# Options: MEDIAN_OFF, KERNEL_3x3, KERNEL_5x5, KERNEL_7x7 (default)
+depth.initialConfig.setMedianFilter(dai.MedianFilter.KERNEL_7x7)
+depth.setLeftRightCheck(lr_check)
+depth.setExtendedDisparity(extended_disparity)
+depth.setSubpixel(subpixel)
+
+config = depth.initialConfig.get()
+config.postProcessing.speckleFilter.enable = False
+config.postProcessing.speckleFilter.speckleRange = 50
+config.postProcessing.temporalFilter.enable = True
+config.postProcessing.spatialFilter.enable = True
+config.postProcessing.spatialFilter.holeFillingRadius = 2
+config.postProcessing.spatialFilter.numIterations = 1
+config.postProcessing.thresholdFilter.minRange = 400
+config.postProcessing.thresholdFilter.maxRange = 15000
+config.postProcessing.decimationFilter.decimationFactor = 1
+depth.initialConfig.set(config)
+# '''
+
+# config for features
 # Disable optical flow
 featureTrackerLeft.initialConfig.setMotionEstimator(False)
 featureTrackerRight.initialConfig.setMotionEstimator(False)
 
 # Linking
+monoLeft.out.link(depth.left)
+monoRight.out.link(depth.right)
+depth.disparity.link(xoutDisparity.input)
 monoLeft.out.link(featureTrackerLeft.inputImage)
 featureTrackerLeft.passthroughInputImage.link(xoutPassthroughFrameLeft.input)
 featureTrackerLeft.outputFeatures.link(xoutTrackedFeaturesLeft.input)
@@ -60,6 +107,8 @@ cv2.namedWindow(leftWindowName , cv2.WINDOW_NORMAL)
 # cv2.setWindowProperty(leftWindowName , cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
 # Connect to device and start pipeline
 with dai.Device(pipeline) as device:
+    # Output queue will be used to get the disparity frames from the outputs defined above
+    q = device.getOutputQueue(name="disparity", maxSize=4, blocking=False)
 
     # Output queues used to receive the results
     passthroughImageLeftQueue = device.getOutputQueue("passthroughFrameLeft", 8, False)
@@ -69,13 +118,20 @@ with dai.Device(pipeline) as device:
 
     inputFeatureTrackerConfigQueue = device.getInputQueue("trackedFeaturesConfig")
 
-    def drawFeatures(frame, features):
-        pointColor = (0, 255, 0)
+    def drawFeatures(frame, features,pointColor=(0,255,0)):
+        # pointColor = (0, 255, 0)
         circleRadius = 3
         for feature in features:
             cv2.circle(frame, (int(feature.position.x), int(feature.position.y)), circleRadius, pointColor, -1, cv2.LINE_AA, 0)
 
     while True:
+        inDisparity = q.get()  # blocking call, will wait until a new data has arrived
+        frame = inDisparity.getFrame()
+        # Normalization for better visualization
+        frame = (frame * (255 / depth.initialConfig.getMaxDisparity())).astype(np.uint8)
+        dispfeatFrame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        # cv2.imshow("disparity", frame)
+
         inPassthroughFrameLeft = passthroughImageLeftQueue.get()
         passthroughFrameLeft = inPassthroughFrameLeft.getFrame()
         leftFrame = cv2.cvtColor(passthroughFrameLeft, cv2.COLOR_GRAY2BGR)
@@ -86,15 +142,14 @@ with dai.Device(pipeline) as device:
 
         trackedFeaturesLeft = outputFeaturesLeftQueue.get().trackedFeatures
         drawFeatures(leftFrame, trackedFeaturesLeft)
-        cv2.putText(leftFrame, str(len(trackedFeaturesLeft)), (10, 10), cv2.FONT_HERSHEY_PLAIN, 1.3, (0, 255, 0), thickness = 1, lineType=cv2.LINE_AA)
 
-        print(f'nb left features {len(trackedFeaturesLeft)}')
-
+        drawFeatures(dispfeatFrame, trackedFeaturesLeft,pointColor=(255,0,0))
         trackedFeaturesRight = outputFeaturesRightQueue.get().trackedFeatures
-        cv2.putText(rightFrame, str(len(trackedFeaturesRight)), (10, 10), cv2.FONT_HERSHEY_PLAIN, 1.3, (0, 255, 0), thickness = 1, lineType=cv2.LINE_AA)
+        drawFeatures(dispfeatFrame, trackedFeaturesRight,pointColor=(0,0,255))
         drawFeatures(rightFrame, trackedFeaturesRight)
 
         # Show the frame
+        cv2.imshow("disparity", dispfeatFrame)
         cv2.imshow(leftWindowName, leftFrame)
         cv2.imshow(rightWindowName, rightFrame)
 
