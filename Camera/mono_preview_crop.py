@@ -31,6 +31,7 @@ def mouse_callback(event, x, y, flags, param):
         drawing = False
         cropping = True
         roi_points.append((x, y))
+        cv2.putText(frame, f'c:crop r:reset',(20,30), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 0), thickness = 2, lineType=cv2.LINE_AA)
         cv2.rectangle(frame, roi_points[0], roi_points[1], (0, 255, 0), 2)
         cv2.imshow("Mono Camera", frame)
 
@@ -43,6 +44,10 @@ mono_right = pipeline.create(dai.node.MonoCamera)
 xout_left = pipeline.create(dai.node.XLinkOut)
 xout_right = pipeline.create(dai.node.XLinkOut)
 
+# optional, to resize the input image
+manip = pipeline.create(dai.node.ImageManip)
+manip.initialConfig.setResize(320, 240)
+
 xout_left.setStreamName("left")
 xout_right.setStreamName("right")
 
@@ -53,6 +58,8 @@ mono_right.setCamera("right")
 mono_right.setResolution(dai.MonoCameraProperties.SensorResolution.THE_480_P)
 
 # Linking
+# mono_left.out.link(manip.inputImage)
+# manip.out.link(xout_left.input)
 mono_left.out.link(xout_left.input)
 mono_right.out.link(xout_right.input)
 
@@ -62,15 +69,15 @@ with dai.Device(pipeline) as device:
     right_queue = device.getOutputQueue(name="right", maxSize=4, blocking=False)
 
     cv2.namedWindow("Mono Camera", cv2.WINDOW_NORMAL)
-    cv2.setWindowProperty("Mono Camera", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
+    # cv2.setWindowProperty("Mono Camera", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN);
     cv2.setMouseCallback("Mono Camera", mouse_callback)
 
     while True:
         left_frame = left_queue.get().getCvFrame()
         right_frame = right_queue.get().getCvFrame()
 
-        # Display the left frame (you can choose right or both)
-        frame = left_frame.copy() # Make a copy to avoid modifying the original
+        # Display the left frame (can choose right or both)
+        frame = left_frame.copy() # copy to avoid modifying the original
 
         if not drawing and not cropping:
             cv2.imshow("Mono Camera", left_frame)
