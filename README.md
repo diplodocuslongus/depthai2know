@@ -54,10 +54,28 @@ See:
 
 https://pypi.org/project/depthai/
 
-Note that the depthai_sdk from pip will uninstall the current depthai (2.25 for me) and install 2.22 instead.
+I also installed depthai_sdk from pip, after installing the latest depthai with the method above.
+
+    pip install depthai_sdk
+
+Note that the depthai_sdk from pip had uninstalled my current depthai (2.25 for me) and install 2.22 instead, but upon upgrade (uninstall and reinstall with the method above) there didn't seem to have been any uninstall of the just installed depthai.
+
+Upgrade:
+
+    workon depthai
+    pip list # depthai 2.28
+    pip install --upgrade pip
+    pip uninstall depthai
+    python3 -m pip install --extra-index-url https://artifacts.luxonis.com/artifactory/luxonis-python-snapshot-local/ depthai # this installed 2.29
+    pip install depthai_sdk # installed 1.15 on the sys76
+
+
 
 Install depthai_sdk from source may work.
 
+build the library locally (from depthai repo for depthai_sdk and depthai-python repo for depthai library)
+
+(ref this post: https://discuss.luxonis.com/d/2030)
 # OAK-D pro
 
 ## Camera
@@ -80,6 +98,7 @@ Command Line
 python3 calibrate.py -s [SQUARE_SIZE_IN_CM] --board [BOARD] -nx [squaresX] -ny [squaresY] -m process
 
 Calibration results are stored inside the resources/ folder and can be used later for testing/debugging purposes. You can also load/flash this local calibration file to the device - see example for more details.
+
 ## IMU
 
 ### calibration
@@ -88,6 +107,49 @@ Calibration results are stored inside the resources/ folder and can be used late
 https://docs.luxonis.com/projects/api/en/latest/components/nodes/imu/
 
 # OAK module aka OAK FFC (multiple camera)
+
+## bootloader update
+
+Upon running the utility cam_test.py I had:
+
+    [14442C10F13EE7D600] [1.2] Flashed bootloader version 0.0.22, less than 0.0.28 is susceptible to bootup/restart failure. Upgrading is advised, flashing main/factory 
+
+So I flashed the bootloader using the py device_manager.py utility (in depthai-python/utilities)
+
+- run py device_manager.py
+- select the device from the drop down menu
+- go to "danger zone"
+- flash factory bootloader (select AUTO)
+
+Bootloader correctly updated to 0.0.28
+
+But i had a problem right after the upload:
+
+     py cam_test.py
+    DepthAI version: 2.29.0.0
+    DepthAI path: /home/ludos7/.virtualenvs/depthai/lib/python3.10/site-packages/depthai.cpython-310-x86_64-linux-gnu.so
+    Traceback (most recent call last):
+      File "/home/ludos7/Programs/othergitrepos/ComputerVision/Luxonis_depthai/depthai-python/utilities/cam_test.py", line 257, in <module>
+        with dai.Device(*dai_device_args) as device:
+    RuntimeError: Device already closed or disconnected: Input/output error
+
+I reflashed the bootloader, pressed the button closest to the usb connector and it seem to work.
+
+May be a USB cable issue, or camera cable issue... as it worked then stopped with:
+
+    Cam:      camb          camc     [host | capture timestamp]
+    FPS:  19.37| 19.56  19.64| 19.56 Communication exception - possible device error/misconfiguration. Original message 'Couldn't read data from stream: 'camb' (X_LINK_ERROR)'
+    Exiting cleanly
+
+
+then crashed...
+
+Also had to install PySimpleGUI to be able to run the device_manager:
+
+    python -m pip uninstall PySimpleGUI
+    python -m pip cache purge
+    (depthai) gonze:utilities/ (main) $  pip install --upgrade --extra-index-url https://PySimpleGUI.net/install PySimpleGUI
+
 
 Tested 20092024
 
