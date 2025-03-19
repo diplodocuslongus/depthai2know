@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<rotationMatrix_cam1_to_cam2 type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>d</dt>
+  <data>
+    0.99994450394068435 -0.0047133139266063587 0.0094219801872025902
+    0.0046402839893866449 0.99995914046653589 0.0077579096362799535
+    -0.0094581606730178534 -0.0077137584390556306 0.9999255177899139</data></rotationMatrix_cam1_to_cam2>
+<translationMatrix_cam1_to_cam2 type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>1</cols>
+  <dt>d</dt>
+  <data>
+    -6.7123261188422756 -0.051250256094813422 -0.0077751426028662488</data></translationMatrix_cam1_to_cam2>
+</opencv_storage>

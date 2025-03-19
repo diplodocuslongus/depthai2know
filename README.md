@@ -121,6 +121,7 @@ So I flashed the bootloader using the py device_manager.py utility (in depthai-p
 - go to "danger zone"
 - flash factory bootloader (select AUTO)
 
+https://docs.luxonis.com/software/depthai-components/bootloader/#Danger%20Zone
 Bootloader correctly updated to 0.0.28
 
 But i had a problem right after the upload:
