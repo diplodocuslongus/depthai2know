@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # this is based on the depthai example on depth post postProcessing
 # added is the option to perform binning
+# compare various binning options
 
 import cv2
 import depthai as dai
@@ -111,18 +112,36 @@ with dai.Device(pipeline) as device:
 
     while True:
         inDisparity = q.get()  # blocking call, will wait until a new data has arrived
-        frame = inDisparity.getFrame()
-        binned_map = bin_dispmap_numpy(frame, bin_sz,method='mean')
+        in_frame = inDisparity.getFrame()
+        binned_map = bin_dispmap_numpy(in_frame, bin_sz,method='mean')
+        binned_map_med = bin_dispmap_numpy(in_frame, bin_sz,method='median')
+        binned_map_max = bin_dispmap_numpy(in_frame, bin_sz,method='max')
+        binned_map_min = bin_dispmap_numpy(in_frame, bin_sz,method='min')
         # Normalization for better visualization
-        frame = (frame * (255 / depth.initialConfig.getMaxDisparity())).astype(np.uint8)
+        frame = (in_frame * (255 / depth.initialConfig.getMaxDisparity())).astype(np.uint8)
 
         cv2.imshow("disparity", frame)
 
 
+        dispsz = (320,240)
+        # dispsz = (640,480)
+
         # Optionally display the binned disparity map
         normalized_binned_disp = cv2.normalize(binned_map, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
-        Z= cv2.resize(normalized_binned_disp,(640,480),fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
-        cv2.imshow("Binned Disparity", Z)
+        bdm_mean= cv2.resize(normalized_binned_disp,dispsz,fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
+        # cv2.imshow("Binned Disparity mean", bdm_mean)
+        normalized_binned_disp = cv2.normalize(binned_map_med, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+        bdm_med= cv2.resize(normalized_binned_disp,dispsz,fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
+        # cv2.imshow("Binned Disparity median", bdm_med)
+        normalized_binned_disp = cv2.normalize(binned_map_max, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+        bdm_max= cv2.resize(normalized_binned_disp,dispsz,fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
+        # cv2.imshow("Binned Disparity max", bdm_max)
+        normalized_binned_disp = cv2.normalize(binned_map_min, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+        bdm_min= cv2.resize(normalized_binned_disp,dispsz,fx=0, fy=0, interpolation = cv2.INTER_NEAREST)
+        # cv2.imshow("Binned Disparity min", bdm_min)
+        allimg = np.hstack((bdm_min,bdm_max,bdm_mean,bdm_med))
+
+        cv2.imshow('allimg',allimg)
         # cv2.imshow("Binned Disparity", normalized_binned_disp)
         # cv2.imshow("Binned Disparity", binned_map)
         # cv2.waitKey(1)
