@@ -1,4 +1,14 @@
-order TODO
+# content (partial) of the repo
+
+## CV
+
+./CV/spatial_location_calculator_2ROI.py
+
+Detects line segments, vanishing lines in mono image and compute depth at its location (WIP)
+
+![spatial_location_calculator_2ROI](img/CV__spatial_location_calculator_2ROI.png)
+
+# order TODO
 
 pip install depthai-sdk[record]
 
