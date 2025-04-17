@@ -21,7 +21,8 @@ import numpy as np
 import sys
 import math
 
-sys.path.insert(0, '/home/ludofw/mygitrepos/opencv2know/line_detection/frezza_supelec')
+sys.path.insert(0, '/home/pi/Programs/warehouse_nav/lines_and_template')
+# sys.path.insert(0, '/home/pi/Programs/warehouse_nav/lines_and_template')
 
 import LSD_utils as mll
 
