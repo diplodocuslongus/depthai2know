@@ -1,7 +1,6 @@
 .ipynb_checkpoints/
 log/
 build/
-install/
 resource/
 ROS2/*/install/
 ROS2/*/log/
