@@ -21,16 +21,17 @@ def save_png():
     global r_img
     while gogogo:
         if l_img is not None:
-            cv2.imwrite(f"oakd_lite/mav0/cam0/data/{l_ts}.png", l_img)
+            cv2.imwrite(f"{path2dataset}/oakd_lite/mav0/cam0/data/{l_ts}.png", l_img)
             l_img = None
         if r_img is not None:
-            cv2.imwrite(f"oakd_lite/mav0/cam1/data/{r_ts}.png", r_img)
+            cv2.imwrite(f"{path2dataset}/oakd_lite/mav0/cam1/data/{r_ts}.png", r_img)
             r_img = None
         time.sleep(0.0001)
 
-pathlib.Path("oakd_lite/mav0/imu0").mkdir(parents=True, exist_ok=True)
-pathlib.Path("oakd_lite/mav0/cam0/data").mkdir(parents=True, exist_ok=True)
-pathlib.Path("oakd_lite/mav0/cam1/data").mkdir(parents=True, exist_ok=True)
+path2dataset='/home/ludofw/Data/Drones'
+pathlib.Path(path2dataset+"/oakd_lite/mav0/imu0").mkdir(parents=True, exist_ok=True)
+pathlib.Path(path2dataset+"/oakd_lite/mav0/cam0/data").mkdir(parents=True, exist_ok=True)
+pathlib.Path(path2dataset+"/oakd_lite/mav0/cam1/data").mkdir(parents=True, exist_ok=True)
 
 fs = cv2.FileStorage("q250_imu_cali.yml", cv2.FILE_STORAGE_READ)
 acc_misalign = fs.getNode("acc_misalign").mat()
@@ -83,8 +84,8 @@ t_png = threading.Thread(target=save_png)
 t_png.start()
 
 # Pipeline is defined, now we can connect to the device
-with dai.Device(pipeline) as device, open('oakd_lite/mav0/imu0/data.csv', 'w') as imu_file, open('oakd_lite/mav0/cam0/data.csv', 'w') as cam0_file, open('oakd_lite/mav0/cam1/data.csv', 'w') as cam1_file:
-    print("start")
+with dai.Device(pipeline) as device, open(path2dataset+'/oakd_lite/mav0/imu0/data.csv', 'w') as imu_file, open(path2dataset+'/oakd_lite/mav0/cam0/data.csv', 'w') as cam0_file, open(path2dataset+'/oakd_lite/mav0/cam1/data.csv', 'w') as cam1_file:
+    print("capture started...")
     imu_writer = csv.writer(imu_file)
     cam0_writer = csv.writer(cam0_file)
     cam1_writer = csv.writer(cam1_file)
