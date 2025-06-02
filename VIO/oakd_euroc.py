@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 # Chobits' script to capture images and IMU from oak-d to follow EuRoC format
+# directory structure for calibration is slightly different
+# imshow added to see what we are capturing
+# check the frame rate, set to 4Hz or 10Hz (max, or calib time is long) for calibration, 20Hz otherwise
 import cv2
 import depthai as dai
 import time
@@ -111,11 +114,11 @@ with dai.Device(pipeline) as device, open(path2dataset+'/oakd_lite/mav0/imu0/dat
             elif queueName == "left":
                 inLeft = qLeft.get()
                 l_ts = int(inLeft.getTimestampDevice().total_seconds()*1e9)
-                l_img = inLeft.getFrame()
-                # l_img = inLeft.getCvFrame()
+                # l_img = inLeft.getFrame()
+                l_img = inLeft.getCvFrame()
                 cam0_writer.writerow((l_ts, f"{l_ts}.png"))
-                # cv2.imshow('left', l_img)
-                # cv2.waitKey(10)
+                cv2.imshow('left', l_img)
+                cv2.waitKey(1)
             elif queueName == "right":
                 inRight = qRight.get()
                 r_ts = int(inRight.getTimestampDevice().total_seconds()*1e9)
