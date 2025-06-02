@@ -16,6 +16,9 @@ l_ts = 0
 r_img = None
 r_ts = 0
 
+# path2dataset='/home/ludofw/Data/Drones'
+path2dataset='/mnt/Data_3TB/Data/Datasets/Kalibr/oakd_lite_IMU_cam'
+
 def save_png():
     global l_img
     global r_img
@@ -28,20 +31,19 @@ def save_png():
             r_img = None
         time.sleep(0.0001)
 
-path2dataset='/home/ludofw/Data/Drones'
 pathlib.Path(path2dataset+"/oakd_lite/mav0/imu0").mkdir(parents=True, exist_ok=True)
 pathlib.Path(path2dataset+"/oakd_lite/mav0/cam0/data").mkdir(parents=True, exist_ok=True)
 pathlib.Path(path2dataset+"/oakd_lite/mav0/cam1/data").mkdir(parents=True, exist_ok=True)
 
 fs = cv2.FileStorage("q250_imu_cali.yml", cv2.FILE_STORAGE_READ)
 acc_misalign = fs.getNode("acc_misalign").mat()
-acc_scale = fs.getNode("acc_scale").mat()
-acc_cor = acc_misalign * acc_scale
 acc_bias = fs.getNode("acc_bias").mat()
+acc_scale = fs.getNode("acc_scale").mat()
 gyro_misalign = fs.getNode("gyro_misalign").mat()
 gyro_scale = fs.getNode("gyro_scale").mat()
-gyro_cor = acc_misalign * acc_scale
 gyro_bias = fs.getNode("gyro_bias").mat()
+acc_cor =  acc_misalign @ acc_scale
+gyro_cor = gyro_misalign @ gyro_scale
 fs.release()
 
 # Create pipeline
@@ -102,15 +104,18 @@ with dai.Device(pipeline) as device, open(path2dataset+'/oakd_lite/mav0/imu0/dat
                 for imuPacket in imuPackets:
                     acceleroValues = imuPacket.acceleroMeter
                     gyroValues = imuPacket.gyroscope
-                    acc_cali = acc_cor @ (np.array([acceleroValues.x, acceleroValues.y, acceleroValues.z]) - acc_bias)
-                    gyro_cali = gyro_cor @ (np.array([gyroValues.x, gyroValues.y, gyroValues.z]) - gyro_bias)
+                    acc_cali = acc_cor @ (np.array([[acceleroValues.x], [acceleroValues.y], [acceleroValues.z]]) - acc_bias)
+                    gyro_cali = gyro_cor @ (np.array([[gyroValues.x], [gyroValues.y], [gyroValues.z]]) - gyro_bias)
                     # align with cam axis
                     imu_writer.writerow((int(acceleroValues.getTimestampDevice().total_seconds()*1e9), gyro_cali[0, 0], -gyro_cali[1, 0], -gyro_cali[2, 0], acc_cali[0, 0], -acc_cali[1, 0], -acc_cali[2, 0]))
             elif queueName == "left":
                 inLeft = qLeft.get()
                 l_ts = int(inLeft.getTimestampDevice().total_seconds()*1e9)
                 l_img = inLeft.getFrame()
+                # l_img = inLeft.getCvFrame()
                 cam0_writer.writerow((l_ts, f"{l_ts}.png"))
+                # cv2.imshow('left', l_img)
+                # cv2.waitKey(10)
             elif queueName == "right":
                 inRight = qRight.get()
                 r_ts = int(inRight.getTimestampDevice().total_seconds()*1e9)

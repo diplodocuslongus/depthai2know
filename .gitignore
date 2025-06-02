@@ -5,3 +5,4 @@ resource/
 ROS2/*/install/
 ROS2/*/log/
 ROS2/*/build/
+*.swp
