@@ -4,6 +4,7 @@
 # directory structure for calibration is slightly different
 # imshow added to see what we are capturing
 # check the frame rate, set to 4Hz or 10Hz (max, or calib time is long) for calibration, 20Hz otherwise
+
 import cv2
 import depthai as dai
 import time
@@ -20,23 +21,25 @@ r_img = None
 r_ts = 0
 
 # path2dataset='/home/ludofw/Data/Drones'
-path2dataset='/mnt/Data_3TB/Data/Datasets/Kalibr/oakd_lite_IMU_cam'
+path2dataset='/home/rpikim/datasets/oakd_lite'
+# path2dataset='/mnt/Data_3TB/Data/Datasets/Kalibr/oakd_lite_IMU_cam'
 
+datasetname = 'office_03062025_oak1_0'
 def save_png():
     global l_img
     global r_img
     while gogogo:
         if l_img is not None:
-            cv2.imwrite(f"{path2dataset}/oakd_lite/mav0/cam0/data/{l_ts}.png", l_img)
+            cv2.imwrite(f"{path2dataset}/{datasetname}/mav0/cam0/data/{l_ts}.png", l_img)
             l_img = None
         if r_img is not None:
-            cv2.imwrite(f"{path2dataset}/oakd_lite/mav0/cam1/data/{r_ts}.png", r_img)
+            cv2.imwrite(f"{path2dataset}/{datasetname}/mav0/cam1/data/{r_ts}.png", r_img)
             r_img = None
         time.sleep(0.0001)
 
-pathlib.Path(path2dataset+"/oakd_lite/mav0/imu0").mkdir(parents=True, exist_ok=True)
-pathlib.Path(path2dataset+"/oakd_lite/mav0/cam0/data").mkdir(parents=True, exist_ok=True)
-pathlib.Path(path2dataset+"/oakd_lite/mav0/cam1/data").mkdir(parents=True, exist_ok=True)
+pathlib.Path(path2dataset+"/"+datasetname+"/mav0/imu0").mkdir(parents=True, exist_ok=True)
+pathlib.Path(path2dataset+"/"+datasetname+"/mav0/cam0/data").mkdir(parents=True, exist_ok=True)
+pathlib.Path(path2dataset+"/"+datasetname+"/mav0/cam1/data").mkdir(parents=True, exist_ok=True)
 
 fs = cv2.FileStorage("q250_imu_cali.yml", cv2.FILE_STORAGE_READ)
 acc_misalign = fs.getNode("acc_misalign").mat()
@@ -89,7 +92,7 @@ t_png = threading.Thread(target=save_png)
 t_png.start()
 
 # Pipeline is defined, now we can connect to the device
-with dai.Device(pipeline) as device, open(path2dataset+'/oakd_lite/mav0/imu0/data.csv', 'w') as imu_file, open(path2dataset+'/oakd_lite/mav0/cam0/data.csv', 'w') as cam0_file, open(path2dataset+'/oakd_lite/mav0/cam1/data.csv', 'w') as cam1_file:
+with dai.Device(pipeline) as device, open(path2dataset+'/'+datasetname+'/mav0/imu0/data.csv', 'w') as imu_file, open(path2dataset+'/'+datasetname+'/mav0/cam0/data.csv', 'w') as cam0_file, open(path2dataset+'/'+datasetname+'/mav0/cam1/data.csv', 'w') as cam1_file:
     print("capture started...")
     imu_writer = csv.writer(imu_file)
     cam0_writer = csv.writer(cam0_file)
