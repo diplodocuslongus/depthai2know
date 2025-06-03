@@ -8,6 +8,10 @@ Tested with 2.25.0
     git submodule update --init --recursive
     cmake -S. -Bbuild
     cmake --build build --target install
+
+If  building in build, and if depthai-core was installed in a target directory, then use (adjust for the target install directory):
+
+    cmake -Ddepthai_DIR=~/libs/depthai_core/lib/cmake/depthai ..
 ```
 
 ### 1.2. **OpenCV**
