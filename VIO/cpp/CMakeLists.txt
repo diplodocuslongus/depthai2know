@@ -1,0 +1,8 @@
+set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_CXX_FLAGS_RELEASE "-O1")
+cmake_minimum_required(VERSION 3.8)
+project( oakd_euroc )
+find_package(depthai CONFIG REQUIRED)
+find_package(OpenCV REQUIRED)
+add_executable( oakd_euroc oakd_euroc.cpp )
+target_link_libraries( oakd_euroc ${OpenCV_LIBS} depthai::opencv)
