@@ -19,12 +19,16 @@ l_img = None
 l_ts = 0
 r_img = None
 r_ts = 0
+imu_to_cam = [1.0,-1.0,-1.0] # factor to transform the oak's IMU to oak's camera referential when using default euroc parameters in kimero
+imu_kalibr = [1.0,1.0,1.0] # keep the oak's IMU unchanged when using calibration results from Kalibr
+mf = imu_to_cam
+# mf = imu_kalibr
 
 # path2dataset='/home/ludofw/Data/Drones'
 path2dataset='/home/rpikim/datasets/oakd_lite'
 # path2dataset='/mnt/Data_3TB/Data/Datasets/Kalibr/oakd_lite_IMU_cam'
 
-datasetname = 'office_03062025_oak1_0'
+datasetname = 'office_04062025_oak1_imu_to_cam'
 def save_png():
     global l_img
     global r_img
@@ -113,15 +117,15 @@ with dai.Device(pipeline) as device, open(path2dataset+'/'+datasetname+'/mav0/im
                     acc_cali = acc_cor @ (np.array([[acceleroValues.x], [acceleroValues.y], [acceleroValues.z]]) - acc_bias)
                     gyro_cali = gyro_cor @ (np.array([[gyroValues.x], [gyroValues.y], [gyroValues.z]]) - gyro_bias)
                     # align with cam axis
-                    imu_writer.writerow((int(acceleroValues.getTimestampDevice().total_seconds()*1e9), gyro_cali[0, 0], -gyro_cali[1, 0], -gyro_cali[2, 0], acc_cali[0, 0], -acc_cali[1, 0], -acc_cali[2, 0]))
+                    imu_writer.writerow((int(acceleroValues.getTimestampDevice().total_seconds()*1e9), mf[0]*gyro_cali[0, 0], mf[1]*gyro_cali[1, 0], mf[2]*gyro_cali[2, 0], mf[0]*acc_cali[0, 0], mf[1]*acc_cali[1, 0], mf[2]*acc_cali[2, 0]))
             elif queueName == "left":
                 inLeft = qLeft.get()
                 l_ts = int(inLeft.getTimestampDevice().total_seconds()*1e9)
-                # l_img = inLeft.getFrame()
-                l_img = inLeft.getCvFrame()
+                l_img = inLeft.getFrame()
+                # l_img = inLeft.getCvFrame()
                 cam0_writer.writerow((l_ts, f"{l_ts}.png"))
-                cv2.imshow('left', l_img)
-                cv2.waitKey(1)
+                # cv2.imshow('left', l_img)
+                # cv2.waitKey(1)
             elif queueName == "right":
                 inRight = qRight.get()
                 r_ts = int(inRight.getTimestampDevice().total_seconds()*1e9)
