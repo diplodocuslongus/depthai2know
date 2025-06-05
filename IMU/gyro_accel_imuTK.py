@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # saves imu data for use with the imu took kit (imu_tk)
-# this is for the OAK-D pro, make sure to set the sample rate 
+# this is for the OAK-D pro, OAK-D lite,...
+# make sure to set the sample rate 
 # corresponding to the IMU chip actually on board the OAK
 # get it with e.g. get_imu_part_number
 # data format
@@ -16,12 +17,23 @@ import math
 import csv
 
 # parameters for the data collection
-#ACQ_T = 20*4 # 50s idle, 40 orientation paused during at least 2s, 2s to move to new orientation
+# ACQ_T = 5 # acquisition time in second for test
 ACQ_T = 55+ 40*5 # 50s idle, 40 orientation paused during at least 2s, 2s to move to new orientation
-#IMU_ACCEL_SR = 500 # frequency / sample rate of the accelerometer, in Hz
-IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
-#IMU_GYRO_SR = 400 # frequency / sample rate of the gyro, in Hz
-IMU_GYRO_SR = 100 # frequency / sample rate of the gyro, in Hz
+OAK_MODEL = {0: 'oakdlite',1: 'oakdpro',2: 'other'}
+OAK_ID = 1 # oakd1 : the one with a sticker showing the IMU frame
+OAK_NAME = f'{OAK_MODEL[0]}_oak{OAK_ID}' # adjust index for oak model
+if 'pro' in OAK_NAME:
+    #IMU_ACCEL_SR = 500 # frequency / sample rate of the accelerometer, in Hz
+    IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
+    #IMU_GYRO_SR = 400 # frequency / sample rate of the gyro, in Hz
+    IMU_GYRO_SR = 100 # frequency / sample rate of the gyro, in Hz
+elif 'lite' in OAK_NAME:
+    IMU_ACCEL_SR = 200 # freq/ sample rate of the accelerometer, in Hz
+    IMU_GYRO_SR = 200 # freq/ sample rate of the gyro, in Hz
+else:
+    IMU_ACCEL_SR = 200 
+    IMU_GYRO_SR = 250 
+
 N_SAMPLES = int(ACQ_T) * IMU_GYRO_SR
 #N_SAMPLES = 10 #int(ACQ_T) * IMU_GYRO_SR
 SHOW_DATA = False # show live data in terminal
@@ -30,7 +42,7 @@ SHOW_DATA = False # show live data in terminal
 IMU_ORIENTATION = {0:'level',1:'xUp',2:'xDown',3:'yUp',4:'yDown',5:'zUp',6:'zDown',7:'imuTK'}
 imu_orient = 7
 TIME_STR = f'{int(ACQ_T)}s'
-CSV_FILENAME = f'{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[7]}.csv'
+CSV_FILENAME = f'{OAK_NAME}_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[7]}.csv'
 
 # Create pipeline
 pipeline = dai.Pipeline()
@@ -56,6 +68,7 @@ imu.setMaxBatchReports(10)
 # Link plugins IMU -> XLINK
 imu.out.link(xlinkOut.input)
 
+start_time = time.time()
 # Pipeline is defined, now we can connect to the device
 with dai.Device(pipeline) as device, open(CSV_FILENAME, newline='', mode='w') as csvfile:
     csvwriter = csv.writer(csvfile, delimiter=',')
@@ -69,7 +82,8 @@ with dai.Device(pipeline) as device, open(CSV_FILENAME, newline='', mode='w') as
     #while True:
     for k in range(N_SAMPLES):
     #for _ in range(N_SAMPLES):
-        print(end=f"\r{(k+1)/N_SAMPLES*100:6.2f} %")
+        elapsed_time = time.time() - start_time
+        print(end=f"\r{int(elapsed_time)}s {(k+1)/N_SAMPLES*100:6.2f} %")
         imuData = imuQueue.get()  # blocking call, will wait until a new data has arrived
 
         imuPackets = imuData.packets

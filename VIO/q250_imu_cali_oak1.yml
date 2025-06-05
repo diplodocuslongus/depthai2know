@@ -1,0 +1,36 @@
+%YAML:1.0
+acc_misalign: !!opencv-matrix
+ rows: 3
+ cols: 3
+ dt: d
+ data: [1, -0.000035193, 0.000736005, 0, 1, 0.00773568, -0, 0, 1]
+
+acc_scale: !!opencv-matrix
+ rows: 3
+ cols: 3
+ dt: d
+ data: [0.995989 , 0, 0, 0, 0.999403, 0, 0, 0, 0.99361]
+
+acc_bias: !!opencv-matrix
+ rows: 3
+ cols: 1
+ dt: d
+ data:[-0.0746801, -0.0871997, 0.0949273]
+
+gyro_misalign: !!opencv-matrix
+ rows: 3
+ cols: 3
+ dt: d
+ data: [1, -0.0010121, 0.00253837, 0.000738505, 1, 0.00338661, 0.0147786, -0.00110066, 1]
+
+gyro_scale: !!opencv-matrix
+ rows: 3
+ cols: 3
+ dt: d
+ data: [1.02043, 0, 0, 0, 0.939478, 0, 0, 0, 0.987799]
+
+gyro_bias: !!opencv-matrix
+ rows: 3
+ cols: 1
+ dt: d
+ data:[ 0.00315954, 0.00530003, -0.00133196]
