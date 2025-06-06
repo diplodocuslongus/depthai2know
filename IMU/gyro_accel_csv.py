@@ -43,8 +43,8 @@ def logChipTemperature(info):
 # total acquisition time (just write the time with the unit:ex: 2mn, 120s, 2hr...)
 TIME_STR = '2mn'
 # hardware / system setup information
-hw_setup_idx = 0 # input idx corresponding to the current configuration below
-HW_SETUP= {0:'Drone',1:'Cart',2:'Static',3:'BenchMotorOn',4:'Other',5:'',6:'',7:'',8:''}
+hw_setup_idx = 4 # input idx corresponding to the current configuration below
+HW_SETUP= {0:'Drone',1:'Cart',2:'Static',3:'BenchMotorOn',4:'Handheld',5:'Other',6:'',7:'',8:''}
 # Drone / frame name (if applicable)
 drone_frame_idx = 1
 DRONE_FRAME= {0:'380mmFrame',1:'WarehouseFrame',2:'250mmFrame',3:'',4:'',5:'',6:'',7:'',8:''}
@@ -65,14 +65,15 @@ else:
     CONFIG_DESCRIPTION = f'{HW_SETUP[hw_setup_idx]}_{IMU_ORIENTATION[imu_orient]}'
 
 #OAK_NAME = 'OAKDPro'
-OAK_NAME = 'OAKLight'
+OAK_NAME = 'OAKLight1' # OAKLight1 is the one i use, OAKLight2 is chobits'
 if OAK_NAME == 'OAKDPro':
     IMU_ACCEL_SR = 500 # frequency / sample rate of the accelerometer, in Hz
     #IMU_ACCEL_SR = 125 # frequency / sample rate of the accelerometer, in Hz
     IMU_GYRO_SR = 400 # frequency / sample rate of the gyro, in Hz
     #IMU_GYRO_SR = 100 # frequency / sample rate of the gyro, in Hz
     IMU_NAME = 'BNO086'
-elif OAK_NAME == 'OAKLight':
+elif 'OAKLight' in OAK_NAME :
+# elif OAK_NAME == 'OAKLight':
     IMU_ACCEL_SR = 200 
     IMU_GYRO_SR = 200
     IMU_NAME = 'BMI270'
@@ -108,7 +109,8 @@ if HW_SETUP[hw_setup_idx] == 'Drone':
     SUB_DIR = DRONE_FRAME[drone_frame_idx]
 else:    
     SUB_DIR = HW_SETUP[hw_setup_idx]
-DATA_PATH = f'{HOME}/Data/Drones/IMU/{SUB_DIR}'
+DATA_PATH = f'/mnt/Data_3TB/Data/Calibrations/IMU' # on ludo7
+# DATA_PATH = f'{HOME}/Data/Drones/IMU/{SUB_DIR}'
 Path(DATA_PATH).mkdir(parents=True, exist_ok=True)
 # built the full filename
 if IMU_GYRO_SR == IMU_ACCEL_SR:
@@ -118,7 +120,7 @@ else:
 #CSV_FILENAME = f'{HOME}/Data/Drones/IMU/{OAK_NAME}_{IMU_NAME}_{TIME_STR}_gyroSR{IMU_GYRO_SR}_accSR{IMU_ACCEL_SR}_{IMU_ORIENTATION[imu_orient]}.csv'
 
 print(f'saving csv to {CSV_FILENAME}')
-pouet
+# pouet
 # Create pipeline
 pipeline = dai.Pipeline()
 

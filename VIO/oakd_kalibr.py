@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
-# Chobits' script to capture images and IMU from oak-d to follow EuRoC format
+# script to capture images and IMU from oak-d for kalibr calibration
+# based on chobits' script for oak for euroc dataset
 # directory structure for calibration is slightly different
 # imshow added to see what we are capturing
 # check the frame rate, set to 4Hz or 10Hz (max, or calib time is long) for calibration, 20Hz otherwise
+# added optional camera control to use manual exposure and ISO (seems to slow down capture)
 
 import cv2
 import depthai as dai
@@ -19,20 +21,13 @@ l_img = None
 l_ts = 0
 r_img = None
 r_ts = 0
-imu_to_cam = [1.0,-1.0,-1.0] # factor to transform the oak's IMU to oak's camera referential when using default euroc parameters in kimero
-imu_nochange = [1.0,1.0,1.0] # keep the oak's IMU unchanged 
-# mf = imu_to_cam
-mf = imu_nochange
 
 # path2dataset='/home/ludofw/Data/Drones'
 # path2dataset='/home/rpikim/datasets/oakd_lite'
-path2dataset='/mnt/Data_3TB/Data/Datasets/oakd_lite'
+path2dataset='/mnt/Data_3TB/Data/Datasets/Kalibr/oakd_lite_IMU_cam'
 
-datasetname = f'home_oak1_imu_to_cam'
-datasetname = f'kalibr_imu_unchanged'
-# datasetname = f'home_oak1_imu_nochange'
-# datasetname = f'home_oak1_imu_to_cam'
-# datasetname = f'office_04062025_oak1_imu_to_cam'
+datasetname = 'oak1_imu_unchanged'
+
 def save_png():
     global l_img
     global r_img
@@ -45,7 +40,7 @@ def save_png():
             r_img = None
         time.sleep(0.0001)
 
-pathlib.Path(path2dataset+"/"+datasetname+"/mav0/imu0").mkdir(parents=True, exist_ok=True)
+pathlib.Path(path2dataset+"/"+datasetname+"/mav0").mkdir(parents=True, exist_ok=True)
 pathlib.Path(path2dataset+"/"+datasetname+"/mav0/cam0/data").mkdir(parents=True, exist_ok=True)
 pathlib.Path(path2dataset+"/"+datasetname+"/mav0/cam1/data").mkdir(parents=True, exist_ok=True)
 
@@ -61,6 +56,7 @@ acc_cor =  acc_misalign @ acc_scale
 gyro_cor = gyro_misalign @ gyro_scale
 fs.release()
 
+FPS = 10
 # Create pipeline
 pipeline = dai.Pipeline()
 
@@ -71,10 +67,16 @@ monoLeft = pipeline.create(dai.node.MonoCamera)
 xoutLeft = pipeline.create(dai.node.XLinkOut)
 monoRight = pipeline.create(dai.node.MonoCamera)
 xoutRight = pipeline.create(dai.node.XLinkOut)
+# for camera control, esp expoisure
+controlIn = pipeline.create(dai.node.XLinkIn)
+
+# ctrl = dai.CameraControl()
+# ctrl.setManualExposure(expTime, sensIso)
 
 xout_imu.setStreamName("imu")
 xoutLeft.setStreamName("left")
 xoutRight.setStreamName("right")
+controlIn.setStreamName('control')
 
 imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER_RAW, 200)
 imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_RAW, 200)
@@ -87,21 +89,23 @@ imu.setBatchReportThreshold(5)
 imu.setMaxBatchReports(10)
 monoLeft.setCamera("left")
 monoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_480_P)
-monoLeft.setFps(20)
+monoLeft.setFps(FPS)
 monoRight.setCamera("right")
 monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_480_P)
-monoRight.setFps(20)
+monoRight.setFps(FPS)
 
 # Link plugins IMU -> XLINK
 imu.out.link(xout_imu.input)
 monoLeft.out.link(xoutLeft.input)
 monoRight.out.link(xoutRight.input)
+controlIn.out.link(monoRight.inputControl)
+controlIn.out.link(monoLeft.inputControl)
 
 t_png = threading.Thread(target=save_png)
 t_png.start()
 
 # Pipeline is defined, now we can connect to the device
-with dai.Device(pipeline) as device, open(path2dataset+'/'+datasetname+'/mav0/imu0/data.csv', 'w') as imu_file, open(path2dataset+'/'+datasetname+'/mav0/cam0/data.csv', 'w') as cam0_file, open(path2dataset+'/'+datasetname+'/mav0/cam1/data.csv', 'w') as cam1_file:
+with dai.Device(pipeline) as device, open(path2dataset+'/'+datasetname+'/mav0/imu0.csv', 'w') as imu_file, open(path2dataset+'/'+datasetname+'/mav0/cam0/data.csv', 'w') as cam0_file, open(path2dataset+'/'+datasetname+'/mav0/cam1/data.csv', 'w') as cam1_file:
     print("capture started...")
     imu_writer = csv.writer(imu_file)
     cam0_writer = csv.writer(cam0_file)
@@ -110,8 +114,12 @@ with dai.Device(pipeline) as device, open(path2dataset+'/'+datasetname+'/mav0/im
     imuQueue = device.getOutputQueue(name="imu", maxSize=200, blocking=False)
     qLeft = device.getOutputQueue(name="left", maxSize=4, blocking=False)
     qRight = device.getOutputQueue(name="right", maxSize=4, blocking=False)
+    controlQueue = device.getInputQueue(controlIn.getStreamName())
     try:
         while True:
+            # ctrl = dai.CameraControl()
+            # ctrl.setManualExposure(6500, 200) # doesn't change...
+            # controlQueue.send(ctrl)
             queueName = device.getQueueEvent()
             if queueName == "imu":
                 imuData = imuQueue.get()
@@ -122,7 +130,7 @@ with dai.Device(pipeline) as device, open(path2dataset+'/'+datasetname+'/mav0/im
                     acc_cali = acc_cor @ (np.array([[acceleroValues.x], [acceleroValues.y], [acceleroValues.z]]) - acc_bias)
                     gyro_cali = gyro_cor @ (np.array([[gyroValues.x], [gyroValues.y], [gyroValues.z]]) - gyro_bias)
                     # align with cam axis
-                    imu_writer.writerow((int(acceleroValues.getTimestampDevice().total_seconds()*1e9), mf[0]*gyro_cali[0, 0], mf[1]*gyro_cali[1, 0], mf[2]*gyro_cali[2, 0], mf[0]*acc_cali[0, 0], mf[1]*acc_cali[1, 0], mf[2]*acc_cali[2, 0]))
+                    imu_writer.writerow((int(acceleroValues.getTimestampDevice().total_seconds()*1e9), gyro_cali[0, 0], gyro_cali[1, 0], gyro_cali[2, 0], acc_cali[0, 0], acc_cali[1, 0], acc_cali[2, 0]))
             elif queueName == "left":
                 inLeft = qLeft.get()
                 l_ts = int(inLeft.getTimestampDevice().total_seconds()*1e9)
