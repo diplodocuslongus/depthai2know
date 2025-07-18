@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 # Chobits' script to capture images and IMU from oak-d to follow EuRoC format
-# directory structure for calibration is slightly different
+# directory structure for calibration with kalibr is slightly different
+# see oakd_kalibr.py for calibration with kalibr
 # imshow added to see what we are capturing
 # check the frame rate, set to 4Hz or 10Hz (max, or calib time is long) for calibration, 20Hz otherwise
 
@@ -19,7 +20,7 @@ l_img = None
 l_ts = 0
 r_img = None
 r_ts = 0
-imu_to_cam = [1.0,-1.0,-1.0] # factor to transform the oak's IMU to oak's camera referential when using default euroc parameters in kimero
+imu_to_cam = [1.0,-1.0,-1.0] # factor to transform the oak's IMU to oak's camera referential when using default euroc parameters in kimera
 imu_nochange = [1.0,1.0,1.0] # keep the oak's IMU unchanged 
 # mf = imu_to_cam
 mf = imu_nochange
