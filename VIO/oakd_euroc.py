@@ -25,14 +25,14 @@ imu_nochange = [1.0,1.0,1.0] # keep the oak's IMU unchanged
 mf = imu_nochange
 
 # path2dataset='/home/ludofw/Data/Drones'
-# path2dataset='/home/rpikim/datasets/oakd_lite'
-path2dataset='/mnt/Data_3TB/Data/Datasets/oakd_lite'
+path2dataset='/home/rpikim/datasets/oakd_lite'
+# path2dataset='/mnt/Data_3TB/Data/Datasets/oakd_lite'
 
-datasetname = f'home_oak1_imu_to_cam'
-datasetname = f'kalibr_imu_unchanged'
+# datasetname = f'home_oak1_imu_to_cam'
+# datasetname = f'kalibr_imu_unchanged'
 # datasetname = f'home_oak1_imu_nochange'
 # datasetname = f'home_oak1_imu_to_cam'
-# datasetname = f'office_04062025_oak1_imu_to_cam'
+datasetname = f'office_08062025_Oy'
 def save_png():
     global l_img
     global r_img
